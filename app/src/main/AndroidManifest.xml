@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" >
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PatientChat"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31" >
+        <activity
+            android:name=".views.DoctorView"
+            android:exported="false"
+            android:label="@string/title_activity_doctor_view"
+            android:theme="@style/Theme.PatientChat" />
+        <activity
+            android:name=".views.PatientView"
+            android:exported="false"
+            android:label="@string/title_activity_patient_view"
+            android:theme="@style/Theme.PatientChat" />
+        
+        <activity
+            android:name=".views.XDoctorView"
+            android:exported="false"
+            android:label="Test_Doctor"
+            android:theme="@style/Theme.PatientChat" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.PatientChat" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".PatientDoctorChat"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.PatientChat" />
+    </application>
+
+</manifest>

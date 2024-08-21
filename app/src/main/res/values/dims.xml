@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="padding">5</dimen>
+    <integer name="padd">5</integer>
+    <integer name="text_spacing_default">2</integer>
+    <integer name="default_icon_size">50</integer>
+</resources>
