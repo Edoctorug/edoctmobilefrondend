@@ -2,6 +2,8 @@ package patientdoctorwebsockets;
 
 
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.net.CookieManager;
 import java.util.List;
@@ -58,7 +60,8 @@ public class Httpman {
         }
         catch(IOException ioe)
         {
-            System.out.println(ioe.getMessage());
+            ioe.printStackTrace();
+            Log.e("error message",ioe.getMessage());
             
         }
 

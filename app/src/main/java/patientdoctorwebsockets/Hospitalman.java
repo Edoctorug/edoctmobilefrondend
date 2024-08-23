@@ -73,7 +73,7 @@ public class Hospitalman
         con_ctx = con_ctx+5;
         if(response_data!=null)
         {
-            
+
             AuthResponse parse_result = AuthResponse.deJson(response_data);
 
             if(parse_result!=null)
@@ -83,8 +83,10 @@ public class Hospitalman
             return parse_result;
             }
         }
-
-        return null;
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.status_code = 500;
+        authResponse.status_msg = "Connection Error";
+        return authResponse;
     }
 
     public boolean authWebSocket(WebSocketListener webSocketListener)

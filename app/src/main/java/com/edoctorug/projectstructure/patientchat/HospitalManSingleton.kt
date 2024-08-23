@@ -10,6 +10,7 @@ object HospitalManSingleton
         if(hospitalman_instance == null)
         {
             hospitalman_instance = Hospitalman(ConnectionParams.hospital_url,ConnectionParams.hospital_port)
+
         }
 
         return hospitalman_instance!!

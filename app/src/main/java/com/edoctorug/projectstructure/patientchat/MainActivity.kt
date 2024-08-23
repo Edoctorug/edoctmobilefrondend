@@ -92,6 +92,10 @@ import patientdoctorwebsockets.Models.AuthResponse
 import patientdoctorwebsockets.Models.RegistrationModel
 import java.io.Serializable
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
 import androidx.lifecycle.ViewModelProvider
 import com.edoctorug.projectstructure.patientchat.SharedHospitalModel
 import com.edoctorug.projectstructure.patientchat.constants.ConnectionParams
@@ -159,6 +163,12 @@ class MainActivity : ComponentActivity()
         println(auth_model.toJson())
         Log.i("auth data: ", auth_model.toJson())
         var auth_response: AuthResponse = zhospital_man.auth(auth_model);
+        if(auth_response==null){
+            home_dialog_msg = "Connection Error"
+            loading_ctrl.value = false
+            home_dialog_ctrl.value = true
+            return;
+        }
         var status_code: Int = auth_response.status_code
         var chat_activity: Intent
         if (status_code == 200)
@@ -444,6 +454,13 @@ class MainActivity : ComponentActivity()
                     .background(Color.Black, shape = RoundedCornerShape(20.dp))//Change this layout to have a black color
             )
             {
+                Image(
+                    ImageBitmap.imageResource(R.drawable.edoctor_logo_white),
+                    contentDescription = "Patient",
+                    //tint=Color.White,
+                    modifier=Modifier.padding(top=5.dp).align(alignment = Alignment.CenterHorizontally),
+                    filterQuality = FilterQuality.High
+                )
                 Text(
                     "Please Login",
                     modifier = Modifier
@@ -723,6 +740,13 @@ class MainActivity : ComponentActivity()
                     .background(Color.Black, shape = RoundedCornerShape(20.dp))//Change this layout to have a black color
             )
             {
+                Image(
+                    ImageBitmap.imageResource(R.drawable.edoctor_logo_white),
+                    contentDescription = "Patient",
+                    //tint=Color.White,
+                    modifier=Modifier.padding(top=5.dp).align(alignment = Alignment.CenterHorizontally),
+                    filterQuality = FilterQuality.High
+                )
                 Text( //Registration Box Heading
                     ".....Please Register Here.....",
                     modifier = Modifier.padding(10.dp), style = TextStyle(

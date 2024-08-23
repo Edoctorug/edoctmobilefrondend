@@ -104,6 +104,9 @@ import com.edoctorug.projectstructure.patientchat.R
 import com.edoctorug.projectstructure.patientchat.WSRouterX
 import com.spr.jetpack_loading.components.indicators.PacmanIndicator
 import android.util.Log
+import android.view.RoundedCorner
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
+import androidx.compose.material.icons.outlined.ExitToApp
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -119,6 +122,7 @@ import androidx.compose.material3.rememberDatePickerState
 
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.TimePicker
+import androidx.compose.ui.graphics.RectangleShape
 //import com.edoctorug.projectstructure.patientchat.views.ui.theme.PatientChatTheme
 import com.edoctorug.projectstructure.patientchat.constants.ConnectionParams
 import com.edoctorug.projectstructure.patientchat.constants.MainParams.PatientViewScreens
@@ -435,6 +439,9 @@ class PatientView : ComponentActivity() {
         }
     }
 
+    /**
+     * Patient Dashboard
+     */
     @Composable
     fun BoxScope.dashBoard()
     {
@@ -449,14 +456,18 @@ class PatientView : ComponentActivity() {
                 // (2, //transparency 26, //red value 150, //green value 255 //blue value),
                 shape = RoundedCornerShape(5.dp)
             ),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             userScrollEnabled = true)
         {
-
+            /**
+             * Visit doctor Button
+             */
             item {
 
                 var this_enabled = remember{ mutableStateOf(true) }
 
-                        Button(
+
+                Button(
                             onClick = { /*TODO*/
                                         global_enabled.value = !global_enabled.value
                                         this_enabled.value = !this_enabled.value
@@ -466,9 +477,11 @@ class PatientView : ComponentActivity() {
                                       },
                             enabled = (this_enabled.value),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Blue,
+                                containerColor = Color.Black,
                                 disabledContainerColor = Color.DarkGray
-                            )
+                            ),
+
+                            shape = RoundedCornerShape(4.dp)
                         )
                         {
                             ConstraintLayout(modifier = Modifier.background(
@@ -479,7 +492,7 @@ class PatientView : ComponentActivity() {
                                 val (icon_ref, text_ref) = createRefs()
 
                                 Icon(   Icons.Filled.Biotech,
-                                contentDescription = "Visit doctor",
+                                contentDescription = "Click Here To Visit doctor",
                                 tint= Color.White,
                                     modifier = Modifier.constrainAs(icon_ref)
                                     {
@@ -514,6 +527,9 @@ class PatientView : ComponentActivity() {
                 }
             }
 
+            /**
+             * Make Appointments Button
+             */
             item {
 
                 var this_enabled = remember{ mutableStateOf(true) }
@@ -526,9 +542,10 @@ class PatientView : ComponentActivity() {
                     },
                     enabled = (this_enabled.value),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Blue,
+                        containerColor = Color.Black,
                         disabledContainerColor = Color.DarkGray
-                    )
+                    ),
+                    shape = RoundedCornerShape(4.dp)
                 )
                 {
                     ConstraintLayout(modifier = Modifier.background(
@@ -573,6 +590,10 @@ class PatientView : ComponentActivity() {
 
                 }
             }
+
+            /**
+             * Account Settings Button
+             */
             item {
 
                 var this_enabled = remember{ mutableStateOf(true) }
@@ -585,9 +606,10 @@ class PatientView : ComponentActivity() {
                     },
                     enabled = (this_enabled.value),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Blue,
+                        containerColor = Color.Black,
                         disabledContainerColor = Color.DarkGray
-                    )
+                    ),
+                    shape = RoundedCornerShape(4.dp)
                 )
                 {
                     ConstraintLayout(modifier = Modifier.background(
@@ -632,6 +654,76 @@ class PatientView : ComponentActivity() {
 
                 }
             }
+
+            /**
+             * Logout Button
+             */
+            item {
+
+                var this_enabled = remember{ mutableStateOf(true) }
+
+
+                Button(
+                    onClick = { /*TODO*/
+                        /*global_enabled.value = !global_enabled.value
+                        this_enabled.value = !this_enabled.value
+                        last_enabled = this_enabled
+
+                        main_nav_ctrl.navigate(PatientViewScreens.SPECIALITY.name)
+                         */
+                        startActivity(Intent(this_context,MainActivity::class.java))
+                    },
+                    enabled = (this_enabled.value),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Black,
+                        disabledContainerColor = Color.DarkGray
+                    ),
+
+                    shape = RoundedCornerShape(4.dp)
+                )
+                {
+                    ConstraintLayout(modifier = Modifier.background(
+                        Color.Transparent,
+
+                        // (2, //transparency 26, //red value 150, //green value 255 //blue value),
+                    )) {
+                        val (icon_ref, text_ref) = createRefs()
+
+                        Icon(   Icons.AutoMirrored.Outlined.ExitToApp,
+                            contentDescription = "Click Here To Logout",
+                            tint= Color.White,
+                            modifier = Modifier.constrainAs(icon_ref)
+                            {
+                                top.linkTo(parent.top, margin = 0.dp)
+                            }
+                        )
+
+                        Text( //Registration Box Heading
+                            text = "Logout User",
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .constrainAs(text_ref)
+                                {
+                                    absoluteLeft.linkTo(icon_ref.absoluteLeft, margin = 20.dp)
+                                }
+                            //  .align(alignment = Alignment.CenterHorizontally)
+                            , style = TextStyle(
+                                fontSize = TextUnit(10f, TextUnitType.Sp),
+                                fontStyle = FontStyle.Normal,
+                                color = Color.White,
+                                fontFamily = FontFamily.Monospace,
+                                letterSpacing = TextUnit(
+                                    integerResource(id = R.integer.text_spacing_default).toFloat(),
+                                    TextUnitType.Sp
+                                )
+                            )//Label for this layout
+                        )
+                    }
+
+
+
+                }
+            }
         }
     }
 
@@ -640,7 +732,7 @@ class PatientView : ComponentActivity() {
     {
         Column(
             modifier = Modifier
-                .background(Color(11, 65, 156, 255), shape = RoundedCornerShape(10.dp))
+                .background(Color(1, 2, 75, 255), shape = RoundedCornerShape(10.dp))
                 .align(alignment = Alignment.Center)
         )
         {
@@ -811,7 +903,8 @@ class PatientView : ComponentActivity() {
                         listOf(
                             Color.Black,
                             //Color(70, 195, 248, 255),
-                            Color(40, 83, 168, 255),
+                            Color(1, 2, 75, 255),
+                            //Color(40, 83, 168, 255),
                             //Color(173, 213, 241, 255),
                             Color(25, 27, 182, 255),
                             Color(55, 87, 170, 255),
@@ -936,7 +1029,7 @@ class PatientView : ComponentActivity() {
     @Composable
     fun BoxScope.sideMenu()
     {
-        Column(modifier = Modifier.background(color = Color(11, 65, 156, 255)).align(alignment = Alignment.TopEnd))
+        Column(modifier = Modifier.background(color = Color(1, 2, 75, 255)).align(alignment = Alignment.TopEnd))
         {
             Button(
                     onClick = {
@@ -1298,7 +1391,7 @@ class PatientView : ComponentActivity() {
                 .height(50.dp) //height of the top app bar to 35dp
                 .shadow(elevation = 10.dp), //elevation of the top app bar from the main app layout
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(11, 65, 156, 255) //container color of the top app bar
+                containerColor = Color(1, 2, 75, 255) //container color of the top app bar
             ),
             actions = {
 
