@@ -41,9 +41,16 @@ public class Hospitalman
         hospital_Client = new Httpman(hospital_url, hospital_port); //make Httpman object to handle the http connections
     }
 
+    public Hospitalman(String aurl)
+    {
+        hospital_url = aurl;
+        hospital_port = 0;
+        hospital_Client = new Httpman(hospital_url); //make Httpman object to handle the http connections
+    }
+
     public AuthResponse register(RegistrationModel registration_model) //register user using details from the Registration Model
     {
-        String hospital_register_path = "/chatapp/register/"; //path to the registration endpoint at the hospital server
+        String hospital_register_path = "/chatapp/register"; //path to the registration endpoint at the hospital server
         String registration_string_data = registration_model.toJson(); //serialize the contents of the registration model into a json string.
 
         String response_data = hospital_Client.send(registration_string_data, hospital_register_path); //send registration request to server end point.
@@ -65,7 +72,7 @@ public class Hospitalman
 
     public AuthResponse auth(AuthModel auth_model) //method implementing hospital server login
     {
-        String hospital_auth_path = "/chatapp/auth/"; //path to the login endpoint at the hospital server
+        String hospital_auth_path = "/chatapp/auth"; //path to the login endpoint at the hospital server
         String auth_string_data = auth_model.toJson(); //serialize the contents of the auth model into a json string.
 
         String response_data = hospital_Client.send(auth_string_data, hospital_auth_path); //send login request to server end point.
