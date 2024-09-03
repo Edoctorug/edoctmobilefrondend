@@ -107,6 +107,10 @@ import android.util.Log
 import android.view.RoundedCorner
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.outlined.ExitToApp
+import androidx.compose.material.icons.rounded.Deck
+import androidx.compose.material.icons.sharp.DoNotDisturb
+import androidx.compose.material.icons.twotone.ArrowBackIos
+import androidx.compose.material.icons.twotone.DeleteOutline
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -126,6 +130,8 @@ import androidx.compose.ui.graphics.RectangleShape
 //import com.edoctorug.projectstructure.patientchat.views.ui.theme.PatientChatTheme
 import com.edoctorug.projectstructure.patientchat.constants.ConnectionParams
 import com.edoctorug.projectstructure.patientchat.constants.MainParams.PatientViewScreens
+import patientdoctorwebsockets.Models.ChatDetails
+
 class PatientView : ComponentActivity() {
 
     val hospital_url = ConnectionParams.hospital_url //localhost
@@ -134,7 +140,7 @@ class PatientView : ComponentActivity() {
     */
     var hospital_port = ConnectionParams.hospital_port //port number the server backend is listening to
 
-    
+    lateinit var chat_details: ChatDetails
 
     lateinit var this_patient_name: String
     lateinit var this_doctor_name: String
@@ -156,7 +162,7 @@ class PatientView : ComponentActivity() {
     lateinit var show_date_picker: MutableState<Boolean>
 
     lateinit var show_side_menu: MutableState<Boolean>
-
+    lateinit var active_wsrouterx: WSRouterX
     //lateinit var hospital_man: Hospital
 
     lateinit var this_context: Context
@@ -196,8 +202,10 @@ class PatientView : ComponentActivity() {
         setContent{
             //hospitalman = remember{ mutableStateOf(main_hospital_man)}
             chats = remember{ mutableStateListOf<ChatModel>() }
-
+            result_msg = remember { mutableStateOf("") }
             chat_loading_fin = remember {mutableStateOf(false)}
+
+            //chat_loading_fin = remember {mutableStateOf(false)}
 
             show_date_picker = remember {mutableStateOf(false)}
 
@@ -206,7 +214,7 @@ class PatientView : ComponentActivity() {
 
 
             this_context = LocalContext.current
-            result_msg = remember { mutableStateOf("error msg") }
+            //result_msg = remember { mutableStateOf("") }
 
              //assign the nav controller
             user_matched = remember { mutableStateOf(false) }
@@ -279,7 +287,8 @@ class PatientView : ComponentActivity() {
 
     suspend fun wssendMsg(chat_msg: String, zhospital_man: Hospitalman)
     {
-        var auth_bool = zhospital_man.chatWebSocket(chat_msg)
+
+        var auth_bool = zhospital_man.chatWebSocket(chat_msg,chat_details.chat_uuid)
     }
 
     suspend fun wsfindDoc(this_speciality: String, zhospital_man: Hospitalman)//MutableState<Hospitalman>)
@@ -314,7 +323,8 @@ class PatientView : ComponentActivity() {
         //mutable list of current chat objects
         var scroll_state = rememberScrollState() //get a sctate of the scroll
         main_nav_ctrl = rememberNavController()
-        this_ws_listener.setActiveRouter(WSRouterX(chats,result_msg,chat_loading_fin))
+        active_wsrouterx = WSRouterX(chats,result_msg,chat_loading_fin)
+        this_ws_listener.setActiveRouter(active_wsrouterx)
 
 
         /*
@@ -380,6 +390,12 @@ class PatientView : ComponentActivity() {
 
     }
 
+    override fun onBackPressed() {
+        result_msg.value = ""
+        chat_loading_fin.value = false
+        Log.i("BUTTON STATUS", "Back button pressed")
+        super.onBackPressed()
+    }
     @Composable
     fun BoxScope.dashNav()
     {
@@ -431,6 +447,15 @@ class PatientView : ComponentActivity() {
                     }
                     else
                     {
+                        chat_details = ChatDetails.deJson(active_wsrouterx.chatDetails as LinkedHashMap<String, String>)
+
+                        if (chat_details!=null){
+                            Log.i("Chat Details","using chat: "+chat_details.chat_uuid)
+                        }
+                        else{
+                            Log.i("Chat_Details","Chat details missing")
+                        }
+
                         ChatUI(chats, scroll_state)
                     }
                     
@@ -736,10 +761,32 @@ class PatientView : ComponentActivity() {
                 .align(alignment = Alignment.Center)
         )
         {
-            showText(text = "Matching Please Wait ......")
-            PacmanIndicator(ballDiameter = 10f)
             
-            showText(text = result_msg.value)
+            if ((result_msg.value == "") && (chat_loading_fin.value!=true)){
+                showText(text = "Matching Please Wait ......")
+                PacmanIndicator(ballDiameter = 10f)
+
+                showText(text = result_msg.value)
+            }
+            else if((chat_loading_fin.value!=true) && (result_msg.value=="")){
+                showText(text = "Ooops, \uD83D\uDE36\u200D\uD83C\uDF2B\uFE0F")
+                Icon(imageVector = Icons.Sharp.DoNotDisturb,
+                    contentDescription = "no doctor",
+                    tint = Color.White,
+                    modifier = Modifier.size(50.dp).align(alignment = Alignment.CenterHorizontally))
+                showText(text = result_msg.value)
+            }
+            else{
+                showText(text = "MATCHING FINISHED ......")
+                Icon(imageVector = Icons.Rounded.Deck,
+                    contentDescription = "doctor found",
+                    tint = Color.White,
+                    modifier = Modifier.size(50.dp).align(alignment = Alignment.CenterHorizontally))
+                showText(text = result_msg.value)
+
+            }
+
+            
         }
     }
 
@@ -752,7 +799,7 @@ class PatientView : ComponentActivity() {
         var last_enabled_state = remember{  mutableStateOf(false) }
         Column(
             modifier = Modifier
-                .background(Color.Black, shape = RoundedCornerShape(10.dp))
+                //.background(Color.Black, shape = RoundedCornerShape(10.dp))
                 .align(alignment = Alignment.Center)
                 .padding(
                     start = integerResource(id = R.integer.padd).dp,
@@ -783,9 +830,10 @@ class PatientView : ComponentActivity() {
                             enabled = (enabled_state.value || last_enabled_state.value),
                             contentPadding = PaddingValues(1.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Blue,
+                                containerColor = Color.Black,
                                 disabledContainerColor = Color.DarkGray
-                            )
+                            ),
+                            shape = RoundedCornerShape(4.dp)
                         ) {
                             showText(text = speciality)
                         }
@@ -800,6 +848,11 @@ class PatientView : ComponentActivity() {
             )
             {
                 IconButton(
+                    modifier = Modifier.background(color=Color.Transparent,shape = RoundedCornerShape(4.dp)),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Color.Black,
+                        disabledContainerColor = Color.DarkGray
+                    ),
                     onClick = { /*TODO*/
                         coroutineScope.launch{
                             grid_state.animateScrollToItem(5)
@@ -811,11 +864,16 @@ class PatientView : ComponentActivity() {
                     Icon(
                         imageVector = Icons.Sharp.ArrowDropDown,
                         contentDescription = "pull down",
-                        tint = Color.Blue,
+                        tint = Color.White,
                         modifier = Modifier.size(integerResource(id = R.integer.default_icon_size).dp)
                     )
                 }
                 IconButton(
+                    modifier = Modifier.background(color=Color.Transparent,shape = RoundedCornerShape(4.dp)),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Color.Black,
+                        disabledContainerColor = Color.DarkGray
+                    ),
                     onClick = { /*TODO*/
                         coroutineScope.launch{
                             grid_state.animateScrollToItem(0)
@@ -826,7 +884,7 @@ class PatientView : ComponentActivity() {
                     Icon(
                         imageVector = Icons.Sharp.ArrowDropUp,
                         contentDescription = "pull up",
-                        tint = Color.Blue,
+                        tint = Color.White,
                         modifier = Modifier.size(integerResource(id = R.integer.default_icon_size).dp)
                     )
                 }
@@ -837,6 +895,11 @@ class PatientView : ComponentActivity() {
             )
             {
                 IconButton(
+                    modifier = Modifier.background(color=Color.Transparent,shape = RoundedCornerShape(4.dp)),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Color.Black,
+                        disabledContainerColor = Color.DarkGray
+                    ),
                     onClick = { /*TODO*/
                                 main_nav_ctrl.navigate(PatientViewScreens.CHAT_LOADER.name)
                                 var login_job = GlobalScope.launch{
@@ -858,7 +921,7 @@ class PatientView : ComponentActivity() {
                         imageVector = Icons.Sharp.ArrowCircleRight,
                         contentDescription = "next",
                         modifier = Modifier.size(50.dp),
-                        tint = Color.Blue
+                        tint = Color.White
                     )
                 }
             }
@@ -911,7 +974,7 @@ class PatientView : ComponentActivity() {
                             // Color(255, 255, 255),
                             //Color(255, 255, 255, 176),
                             Color.Black
-                         ),
+                        ),
                         Offset.Zero,
                         Offset.Infinite,
                         TileMode.Repeated
@@ -1029,7 +1092,9 @@ class PatientView : ComponentActivity() {
     @Composable
     fun BoxScope.sideMenu()
     {
-        Column(modifier = Modifier.background(color = Color(1, 2, 75, 255)).align(alignment = Alignment.TopEnd))
+        Column(modifier = Modifier
+            .background(color = Color(1, 2, 75, 255))
+            .align(alignment = Alignment.TopEnd))
         {
             Button(
                     onClick = {
@@ -1148,7 +1213,7 @@ class PatientView : ComponentActivity() {
             {
                 Icon(Icons.Outlined.Face, contentDescription = "", tint = Color.White, modifier = Modifier
                     .size(18.dp)
-                    .padding(top = 1.dp, start = 8.dp,bottom = 3.dp)
+                    .padding(top = 1.dp, start = 8.dp, bottom = 3.dp)
                 )
                 Row()
                 {
@@ -1313,8 +1378,8 @@ class PatientView : ComponentActivity() {
                     }) {
                     Icon(
                         Icons.Filled.Send,
-                        contentDescription = "",
-                        tint = Color.Black,
+                        contentDescription = "Send message",
+                        tint = Color.White,
                         //modifier = Modifier.size(20.dp)
                     )
 
@@ -1332,8 +1397,8 @@ class PatientView : ComponentActivity() {
                     }) {
                     Icon(
                         Icons.TwoTone.AddCircle,
-                        contentDescription = "",
-                        tint = Color.Black,
+                        contentDescription = "attach attachment",
+                        tint = Color.White,
                         // modifier = Modifier.size(20.dp)
                     )
 
@@ -1398,6 +1463,9 @@ class PatientView : ComponentActivity() {
                 IconButton(
                     onClick = { /*TODO*/
                         chats.clear()
+                        //result_msg.value = ""
+                        //chat_loading_fin.value = false
+                        //main_nav_ctrl.navigate(PatientViewScreens.DASHBOARD.name)
                     },
 
                     colors = IconButtonDefaults.iconButtonColors(
@@ -1406,13 +1474,14 @@ class PatientView : ComponentActivity() {
                     )
                 ) //delete icon button to clear the chat area
                 {
-                    Icon(Icons.TwoTone.Delete, contentDescription = "clear chat",tint=Color.White)//, modifier = Modifier.size(5.dp))
+                    Icon(Icons.TwoTone.DeleteOutline, contentDescription = "Go back",tint=Color.White)//, modifier = Modifier.size(5.dp))
 
                 }
                 /**
                     Side menu icon
                  */
-                IconButton(onClick = { /*TODO*/
+
+                IconButton(onClick = {
                     //reset.value= false
                     //startActivity(Intent(this_context,MainActivity::class.java))
                     show_side_menu.value = !show_side_menu.value
@@ -1427,6 +1496,7 @@ class PatientView : ComponentActivity() {
                     Icon(Icons.Rounded.Menu, contentDescription = "side menu",tint=Color.White)
 
                 }
+
                 //    }
             }
         )

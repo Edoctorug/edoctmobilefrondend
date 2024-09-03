@@ -93,9 +93,18 @@ import patientdoctorwebsockets.Models.RegistrationModel
 import java.io.Serializable
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModelProvider
 import com.edoctorug.projectstructure.patientchat.SharedHospitalModel
 import com.edoctorug.projectstructure.patientchat.constants.ConnectionParams
@@ -163,6 +172,7 @@ class MainActivity : ComponentActivity()
         println(auth_model.toJson())
         Log.i("auth data: ", auth_model.toJson())
         var auth_response: AuthResponse = zhospital_man.auth(auth_model);
+        toggle_btn = false
         if(auth_response==null){
             home_dialog_msg = "Connection Error"
             loading_ctrl.value = false
@@ -199,6 +209,7 @@ class MainActivity : ComponentActivity()
             chat_activity.putExtra("USER_SESSION_ID",this_session_id)
             chat_activity.putExtra("SPECIALITIES",specialities)
             //chat_activity.putExtra("user_cookies",hospital_man.getCookieJar())
+
             main_context.startActivity(chat_activity)//starts the activity
             finish()
 
@@ -276,6 +287,7 @@ class MainActivity : ComponentActivity()
         var auth_response: AuthResponse = zhospital_man.register(registrationModel);
         var status_code: Int = auth_response.status_code
         var chat_activity: Intent
+        toggle_btn = false
         if (status_code == 200)
         {
             var full_names = auth_response.meta_data.names
@@ -458,7 +470,9 @@ class MainActivity : ComponentActivity()
                     ImageBitmap.imageResource(R.drawable.edoctor_logo_white),
                     contentDescription = "Patient",
                     //tint=Color.White,
-                    modifier=Modifier.padding(top=5.dp).align(alignment = Alignment.CenterHorizontally),
+                    modifier= Modifier
+                        .padding(top = 5.dp)
+                        .align(alignment = Alignment.CenterHorizontally),
                     filterQuality = FilterQuality.High
                 )
                 Text(
@@ -707,14 +721,18 @@ class MainActivity : ComponentActivity()
     {
         //below, am getting my activities current context
         main_context = LocalContext.current
+        var active_speciality: String = ""
         var login = remember { mutableStateOf(false) } //saving the login state to track any changes to it's value
         var name by remember { mutableStateOf("") } //saving the name state to track any changes to it's value
         var first_name by remember { mutableStateOf("") } //get first_name
         var last_name by remember { mutableStateOf("") } //get last_name
         var pass by remember { mutableStateOf("") } //saving the password state to track any changes to it's value
         var is_pass_visible = remember { mutableStateOf(false) } //used to check if the visible password button has been toggled it not
-
+        var grid_state = rememberLazyGridState() //state of the speciality picker
+        var specialities = arrayOf("consultant","Dentist","Physician","Dermatologist","Surgeon","Counselor","Psychiatrist","Pediatricians","Obstetrician","Nurse","Orthopedologist","Optician","Therapist","Pharmacist","Midwife","Nutritionist","Gynecologist","Urologist")
         var registration_model by remember { mutableStateOf(RegistrationModel())}
+        var last_enabled_state = remember{  mutableStateOf(false) } //state of individual specialities buttons
+        var show_speciality_dialog = remember{  mutableStateOf(false) } //state of whether to show specility or not
         Box(//box composable to Registration activity
             modifier = Modifier
                 .fillMaxHeight()//set height to cover the parent device screen height
@@ -744,7 +762,9 @@ class MainActivity : ComponentActivity()
                     ImageBitmap.imageResource(R.drawable.edoctor_logo_white),
                     contentDescription = "Patient",
                     //tint=Color.White,
-                    modifier=Modifier.padding(top=5.dp).align(alignment = Alignment.CenterHorizontally),
+                    modifier= Modifier
+                        .padding(top = 5.dp)
+                        .align(alignment = Alignment.CenterHorizontally),
                     filterQuality = FilterQuality.High
                 )
                 Text( //Registration Box Heading
@@ -970,11 +990,72 @@ class MainActivity : ComponentActivity()
                     )//Label for this layout
                 )
 
+                if(show_speciality_dialog.value==true) {
+                    Dialog(onDismissRequest = { /*TODO*/show_speciality_dialog.value = false }) {
+                        Card(
+                            shape = RoundedCornerShape(4.dp),
+                            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.7f),
+                            colors = CardColors(
+                                containerColor = Color.Black,
+                                contentColor = Color.White,
+                                disabledContainerColor = Color.Black,
+                                disabledContentColor = Color.White
+                            )
+                        ) {
+                            Text("Please Choose Speciality", textAlign = TextAlign.Center)
+                            LazyVerticalGrid(
+                                columns = GridCells.Adaptive(150.dp),
+                                state = grid_state,
+                                modifier = Modifier.fillMaxHeight(0.9f),
+                                userScrollEnabled = true
+                            )
+                            {
+                                for ((index, speciality) in specialities.withIndex()) {
+                                    Log.i(
+                                        "speciality_log",
+                                        "Using speciality: " + index + " called " + speciality
+                                    )
+                                    item {
+                                        var enabled_state = remember { mutableStateOf(true) }
+                                        TextButton(
+                                            onClick = { /*TODO*/
+                                                var tmp_enabled_state: Boolean = enabled_state.value
+                                                println("old enabled state: " + tmp_enabled_state)
+                                                enabled_state.value = !tmp_enabled_state
+                                                println("new enabled state: " + enabled_state)
+                                                last_enabled_state.value = !last_enabled_state.value
+                                                last_enabled_state = enabled_state
+
+                                                active_speciality = speciality
+                                                registration_model.user_role = index.toString()
+
+
+                                            },
+                                            enabled = (enabled_state.value || last_enabled_state.value),
+                                            contentPadding = PaddingValues(1.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = Color.Blue,
+                                                disabledContainerColor = Color.DarkGray
+                                            ),
+                                            shape = RoundedCornerShape(4.dp)
+                                        ) {
+                                            Text(text = speciality)
+                                        }
+
+                                    }
+                                }
+                            }
+                            registerMedicBtn(registration_model)
+                        }
+                    }
+                }
+
+
                 Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally))
                 {
 
                     registerPatientBtn(registration_model)
-                    registerDoctorBtn(registration_model)
+                    registerDoctorBtn(show_speciality_dialog)
                 }
 
                 Text( //Registration Box Heading
@@ -1028,6 +1109,7 @@ class MainActivity : ComponentActivity()
                 if((show_load_patient.value == false)&&(toggle_btn == false))
                 {
                     registrationModel.user_role = "patient"
+                    registrationModel.user_type = "non-medic"
 
                     toggle_btn = true
                     show_load_patient.value = true
@@ -1063,21 +1145,23 @@ class MainActivity : ComponentActivity()
     }
 
     @Composable
-    fun RowScope.registerDoctorBtn(registrationModel: RegistrationModel)
+    fun registerMedicBtn(registrationModel: RegistrationModel)
     {
         var show_register_loading = remember{ mutableStateOf(false) }
         Button(
+
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Red,
                 disabledContainerColor = Color.Blue
             ),
-            modifier = Modifier.padding(start = 20.dp),
+           // modifier = Modifier.padding(start = 20.dp),
 
             onClick = { /*TODO*///
                 // login(name)
+                Log.i("RG_STATUS","show_register_loading: "+show_register_loading.value+" toggle button "+toggle_btn)
                 if((show_register_loading.value == false)&&(toggle_btn == false))
                 {
-                    registrationModel.user_role = "doctor"
+                   registrationModel.user_type = "medic"
 
                     toggle_btn = true
                     show_register_loading.value = true
@@ -1096,7 +1180,7 @@ class MainActivity : ComponentActivity()
             {
                 Icon(Icons.Outlined.Person, contentDescription = "")
                 Text(
-                    "Doctor", style = TextStyle(
+                    "Register As Medic", style = TextStyle(
                         fontSize = TextUnit(10f, TextUnitType.Sp),
                         fontStyle = FontStyle.Normal,
                         fontFamily = FontFamily.Monospace,
@@ -1109,6 +1193,36 @@ class MainActivity : ComponentActivity()
                 Icon(Icons.Outlined.Person, contentDescription = "",modifier=Modifier.padding(end=20.dp))
                 showLoading()
             }
+        }
+    }
+
+    @Composable
+    fun RowScope.registerDoctorBtn(toggle_btn: MutableState<Boolean>)
+    {
+
+        Button(
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Red,
+                disabledContainerColor = Color.Blue
+            ),
+            modifier = Modifier.padding(start = 20.dp),
+
+            onClick = { /*TODO*///
+                // login(name)
+                val btn_state = toggle_btn.value
+                toggle_btn.value = !btn_state
+            })
+        {
+                Icon(Icons.Outlined.Person, contentDescription = "")
+                Text(
+                    "Doctor", style = TextStyle(
+                        fontSize = TextUnit(10f, TextUnitType.Sp),
+                        fontStyle = FontStyle.Normal,
+                        fontFamily = FontFamily.Monospace,
+                        letterSpacing = TextUnit(2f, TextUnitType.Sp)
+                    )
+                )
+
         }
     }
 

@@ -3,9 +3,11 @@ package com.edoctorug.projectstructure.patientchat;
 import androidx.compose.runtime.MutableState;
 import androidx.navigation.NavHostController;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import kotlin.jvm.internal.markers.KMutableList;
+import patientdoctorwebsockets.Models.ChatDetails;
 import patientdoctorwebsockets.Models.ResponseModel;
 import patientdoctorwebsockets.WSRouter;
 import com.edoctorug.projectstructure.patientchat.constants.MainParams.DoctorViewScreens;
@@ -19,7 +21,7 @@ public class WSRouterX extends WSRouter
     MutableState<Boolean> chat_loader_fin;
 
     MutableState<Boolean> show_dialog; //dialog box controller
-    
+    public Object chatDetails;
     /**
     * WSRouterX constructor
     * @param chat_models a ChatModel object to which the recieved chat messages will be stored.
@@ -112,6 +114,7 @@ public class WSRouterX extends WSRouter
         switch(responseModel.status_code)
         {
             case 200:
+                chatDetails = responseModel.meta_data;
                 results_string.setValue(responseModel.status_msg);
                 chat_loader_fin.setValue(true);
             case 500:

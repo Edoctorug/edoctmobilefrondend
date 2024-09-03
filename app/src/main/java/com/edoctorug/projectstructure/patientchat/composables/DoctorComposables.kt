@@ -159,6 +159,7 @@ import java.time.Instant
 import kotlin.collections.mutableMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.core.content.ContextCompat.startActivity
 
 class DoctorComposables(): WSRouter()
 {
@@ -212,6 +213,7 @@ class DoctorComposables(): WSRouter()
     lateinit var orders_composable: OrdersComposable
 
     lateinit var doc_chat: DoctorChatView
+    lateinit var this_context: Context
     //mutableMapOf<String, String>()
 
     var is_auth = false
@@ -670,6 +672,8 @@ class DoctorComposables(): WSRouter()
             Button(
                     onClick = {
                                     //home_nav_ctrl.navigate(DoctorViewScreens.DASHBOARD.name)
+                                show_side_menu.value = false
+                                startActivity(main_context,Intent(main_context,MainActivity::class.java),null)
                               },
                     colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,

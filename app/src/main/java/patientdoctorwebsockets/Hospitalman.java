@@ -50,7 +50,7 @@ public class Hospitalman
 
     public AuthResponse register(RegistrationModel registration_model) //register user using details from the Registration Model
     {
-        String hospital_register_path = "/chatapp/register"; //path to the registration endpoint at the hospital server
+        String hospital_register_path = "/chatapp/register/"; //path to the registration endpoint at the hospital server
         String registration_string_data = registration_model.toJson(); //serialize the contents of the registration model into a json string.
 
         String response_data = hospital_Client.send(registration_string_data, hospital_register_path); //send registration request to server end point.
@@ -66,13 +66,16 @@ public class Hospitalman
             return parse_result;
             }
         }
-
-        return null;
+        AuthResponse default_response = new AuthResponse();
+        default_response.status_msg = "Obtained unknown error";
+        default_response.status_code = 500;
+        default_response.meta_data = null;
+        return default_response;
     }
 
     public AuthResponse auth(AuthModel auth_model) //method implementing hospital server login
     {
-        String hospital_auth_path = "/chatapp/auth"; //path to the login endpoint at the hospital server
+        String hospital_auth_path = "/chatapp/auth/"; //path to the login endpoint at the hospital server
         String auth_string_data = auth_model.toJson(); //serialize the contents of the auth model into a json string.
 
         String response_data = hospital_Client.send(auth_string_data, hospital_auth_path); //send login request to server end point.

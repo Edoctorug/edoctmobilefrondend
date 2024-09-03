@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.CookieManager;
 import java.util.List;
 import okhttp3.*;
+import java.util.concurrent.TimeUnit;
 import patientdoctorwebsockets.HttpCookieJar;
 //import okhttp3.JavaNetCookieJar;
 public class Httpman {
@@ -41,6 +42,9 @@ public class Httpman {
 
         okhttpclient = new OkHttpClient.Builder()
                 .cookieJar(http_CookieJar)
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
                 .build();
 
     }
