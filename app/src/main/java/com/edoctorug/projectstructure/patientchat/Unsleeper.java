@@ -13,6 +13,7 @@ import okhttp3.Response;
 
 public class Unsleeper {
     OkHttpClient okhttpclient;
+    Response http_response = null;
     String http_url = ConnectionParams.hospital_url;
     int http_port = ConnectionParams.hospital_port;
     String path = "";
@@ -49,7 +50,7 @@ public class Unsleeper {
         try
         {
             int status_code;
-            Response http_response = null;
+
             do{
                 http_response = okhttpclient.newCall(arequest).execute();
                 String response_str = http_response.body().string();
@@ -69,4 +70,6 @@ public class Unsleeper {
             return null;
         }
     }
+
+
 }

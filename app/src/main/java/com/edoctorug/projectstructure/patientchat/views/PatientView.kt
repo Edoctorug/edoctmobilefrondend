@@ -7,6 +7,7 @@ import android.widget.Toast
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -105,6 +106,7 @@ import com.edoctorug.projectstructure.patientchat.WSRouterX
 import com.spr.jetpack_loading.components.indicators.PacmanIndicator
 import android.util.Log
 import android.view.RoundedCorner
+import androidx.annotation.RequiresApi
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material.icons.rounded.Deck
@@ -127,6 +129,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.TimePicker
 import androidx.compose.ui.graphics.RectangleShape
+import com.edoctorug.projectstructure.patientchat.HospitalManSingleton
 //import com.edoctorug.projectstructure.patientchat.views.ui.theme.PatientChatTheme
 import com.edoctorug.projectstructure.patientchat.constants.ConnectionParams
 import com.edoctorug.projectstructure.patientchat.constants.MainParams.PatientViewScreens
@@ -150,7 +153,7 @@ class PatientView : ComponentActivity() {
     lateinit var specialities: Array<String>
     lateinit var user_matched: MutableState<Boolean>
 
-    var main_hospital_man: Hospitalman = Hospitalman(hospital_url,hospital_port)
+    lateinit var main_hospital_man: Hospitalman;// = //Hospitalman(hospital_url,hospital_port)
     var this_ws_listener: WSmanCB  = WSmanCB() //web socket listener
 
     lateinit var main_nav_ctrl: NavHostController //nav host controller to use for the patient view
@@ -177,7 +180,7 @@ class PatientView : ComponentActivity() {
         var user_role: String?  = intent.getStringExtra("user_role")
         var tmp_session_id: String? = intent.getStringExtra("USER_SESSION_ID")
         var tmp_specialities: Array<String>? = intent.getStringArrayExtra("SPECIALITIES")
-
+        main_hospital_man = HospitalManSingleton.getInstance()
 
 
         specialities = if (tmp_specialities!=null) tmp_specialities else emptyArray<String>()
@@ -553,7 +556,7 @@ class PatientView : ComponentActivity() {
             }
 
             /**
-             * Make Appointments Button
+             * Get Appointments Button
              */
             item {
 
@@ -696,6 +699,7 @@ class PatientView : ComponentActivity() {
 
                         main_nav_ctrl.navigate(PatientViewScreens.SPECIALITY.name)
                          */
+                        HospitalManSingleton.resetInstance()
                         startActivity(Intent(this_context,MainActivity::class.java))
                     },
                     enabled = (this_enabled.value),
@@ -1013,6 +1017,7 @@ class PatientView : ComponentActivity() {
     
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun showDatePicker()

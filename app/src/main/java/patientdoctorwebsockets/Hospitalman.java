@@ -1,5 +1,7 @@
 package patientdoctorwebsockets;
 
+import android.util.Log;
+
 import okhttp3.OkHttpClient;
 import okhttp3.WebSocketListener;
 
@@ -54,6 +56,7 @@ public class Hospitalman
         String registration_string_data = registration_model.toJson(); //serialize the contents of the registration model into a json string.
 
         String response_data = hospital_Client.send(registration_string_data, hospital_register_path); //send registration request to server end point.
+        Log.i(" AUTH_RESPONSE_DATA",response_data);
         if(response_data!=null)
         {
             

@@ -15,4 +15,8 @@ object HospitalManSingleton
 
         return hospitalman_instance!!
     }
+
+    fun resetInstance(){
+        hospitalman_instance = Hospitalman(ConnectionParams.hospital_url,ConnectionParams.hospital_port)
+    }
 }

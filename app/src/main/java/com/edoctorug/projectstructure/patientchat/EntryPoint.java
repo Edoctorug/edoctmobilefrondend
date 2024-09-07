@@ -16,19 +16,32 @@ import okhttp3.Response;
 public class EntryPoint extends ComponentActivity {
 
     Unsleeper unsleeper;
+    boolean thread_status = false;
     AlertDialog alertDialog;
     Thread unsleeper_thread = new Thread(new Runnable() {
+        Response unsleeper_response = null;
         @Override
         public void run() {
-            Response unsleeper_response = unsleeper.unsleep();
+            unsleeper_response = unsleeper.unsleep();
             if(unsleeper_response==null){
+                thread_status = false;
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        finish();
+
+                        Toast.makeText(getApplicationContext(),"Connection Error",Toast.LENGTH_LONG).show();
+                        //finish();
                     }
                 });
             }
+            else{
+                thread_status = true;
+            }
+
+        }
+
+        public Response getUnsleeperResponse(){
+            return unsleeper_response;
         }
     });
     @Override
@@ -41,9 +54,15 @@ public class EntryPoint extends ComponentActivity {
 
         try{
             unsleeper_thread.join();
-            Toast.makeText(getApplicationContext(),"server connected",Toast.LENGTH_LONG).show();
-            //showMyDialog("CONNECTION STATUS","Conection successful");
-            startActivity(new Intent(this, MainActivity.class));
+            //Response http_response = unsleeper_thread.getUnsleeperResponse();
+            if (thread_status==true)
+            {
+                Toast.makeText(getApplicationContext(),"server connected",Toast.LENGTH_LONG).show();
+                //showMyDialog("CONNECTION STATUS","Conection successful");
+                startActivity(new Intent(this, MainActivity.class));
+                finish();
+            }
+
         }
         catch (InterruptedException ioe){
             Toast.makeText(getApplicationContext(),"server failed",Toast.LENGTH_LONG).show();
@@ -52,7 +71,7 @@ public class EntryPoint extends ComponentActivity {
 
 
        //showMyDialog("CONNECTION STATUS","Conection error");
-        finish();
+       //
 
     }
 

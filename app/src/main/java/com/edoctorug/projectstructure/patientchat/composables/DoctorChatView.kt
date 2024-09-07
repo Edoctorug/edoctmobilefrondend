@@ -1393,6 +1393,7 @@ class DoctorChatView(private var prev_nav_ctrl: NavHostController,private var ch
             Button(
                     onClick = {
                                     show_side_menu.value = false
+                                    HospitalManSingleton.resetInstance();
                                     startActivity(Intent(this_context,MainActivity::class.java))
                               },
                     colors = ButtonDefaults.buttonColors(

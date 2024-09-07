@@ -673,7 +673,7 @@ class DoctorComposables(): WSRouter()
                     onClick = {
                                     //home_nav_ctrl.navigate(DoctorViewScreens.DASHBOARD.name)
                                 show_side_menu.value = false
-                                startActivity(main_context,Intent(main_context,MainActivity::class.java),null)
+
                               },
                     colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
@@ -684,9 +684,15 @@ class DoctorComposables(): WSRouter()
                 showText("Account Settings")
             }
 
+            /*
+            logout button
+             */
             Button(
                     onClick = {
                                     //startActivity(Intent(this_context,MainActivity::class.java))
+                                    show_side_menu.value = false
+                                    HospitalManSingleton.resetInstance()
+                                    startActivity(main_context,Intent(main_context,MainActivity::class.java),null)
                               },
                     colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
