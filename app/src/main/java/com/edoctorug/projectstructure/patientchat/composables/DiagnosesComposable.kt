@@ -154,8 +154,9 @@ import java.time.Instant
 
 import kotlin.collections.mutableMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import com.edoctorug.projectstructure.patientchat.constants.MainParams
 
-class DiagnosesComposable(private val tmp_home_nav_ctrl: NavHostController,private val mutable_diagnoses_map: SnapshotStateMap<String, DiagnosisDetails>)
+class DiagnosesComposable(private val xthis_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_diagnoses_map: SnapshotStateMap<String, DiagnosisDetails>)
 {
 
     
@@ -188,7 +189,7 @@ class DiagnosesComposable(private val tmp_home_nav_ctrl: NavHostController,priva
     init{
         home_nav_ctrl = tmp_home_nav_ctrl
 
-        //this_role = xthis_role
+        this_role = xthis_role
         //global_session_id = xsession_id
 
         main_hospital_man = HospitalManSingleton.getInstance()
@@ -215,9 +216,10 @@ class DiagnosesComposable(private val tmp_home_nav_ctrl: NavHostController,priva
         //doctor_viewmodel = viewModel()
         //doctor_viewmodel.printCookies()
         
-        if(is_auth==false)
-        {
+        //if(is_auth==false)
+        //{
         GlobalScope.launch{
+            main_hospital_man.getDiagnoses()
             //NetworkUtils().wslogin(this_role,global_session_id, main_hospital_man, this_ws_listener,main_context)
             //main_hospital_man.authWebSocket(this_ws_listener)
             //NetworkUtils().xwslogin(this_ws_listener,doctor_viewmodel)
@@ -225,7 +227,8 @@ class DiagnosesComposable(private val tmp_home_nav_ctrl: NavHostController,priva
             //doctor_viewmodel.printCookies()
         }
         
-        }
+        //}
+        DiagnosesHistory()
 
     }
 
@@ -259,6 +262,7 @@ class DiagnosesComposable(private val tmp_home_nav_ctrl: NavHostController,priva
                             {
                                 Column(verticalArrangement = Arrangement.spacedBy(5.dp))
                                 {
+                                    /*
                                     showText("Diagnoses History")
                                     MainComposables().DiagnosisSummary("diagnosis 1","diagnosis_date",{
                                                 active_diagnosis_details = DiagnosisDetails()
@@ -269,26 +273,33 @@ class DiagnosesComposable(private val tmp_home_nav_ctrl: NavHostController,priva
                                             active_diagnosis_details = DiagnosisDetails()
                                             show_diagnosis_details.value = true
                                             })
-                                    
-                                    for  (item in mutable_diagnoses_map.keys.toList())
-                                    {
-                                        var tmp_diagnosis_details = mutable_diagnoses_map[item]
-                                        var diagnosis_details = if( tmp_diagnosis_details !=null) tmp_diagnosis_details else null //temporarily store the names in the diagnosis
+                                    */
+                                    if(mutable_diagnoses_map.size>0) {
+                                        for (item in mutable_diagnoses_map.keys.toList()) {
+                                            var tmp_diagnosis_details = mutable_diagnoses_map[item]
+                                            var diagnosis_details =
+                                                if (tmp_diagnosis_details != null) tmp_diagnosis_details else null //temporarily store the names in the diagnosis
 
-                                        if(diagnosis_details!=null)
-                                        {
-                                            var diagnosis_names = diagnosis_details.diagnosis_user_names
-                                            var diagnosis_date = diagnosis_details.diagnosis_time
-                                            MainComposables().DiagnosisSummary(diagnosis_names,diagnosis_date,{
-                                                active_diagnosis_details = diagnosis_details
-                                                show_diagnosis_details.value = true
-                                            })
+                                            if (diagnosis_details != null) {
+                                                var diagnosis_names =
+                                                    diagnosis_details.diagnosis_user_names
+                                                var diagnosis_date =
+                                                    diagnosis_details.diagnosis_time
+                                                MainComposables().DiagnosisSummary(
+                                                    diagnosis_names,
+                                                    diagnosis_date,
+                                                    {
+                                                        active_diagnosis_details = diagnosis_details
+                                                        show_diagnosis_details.value = true
+                                                    })
+                                            } else {
+                                                break
+                                            }
+
                                         }
-                                        else
-                                        {
-                                            break
-                                        }
-                                        
+                                    }
+                                    else{
+                                        showText(text = "No Diagnoses Available")
                                     }
                                     
                                 }
@@ -315,7 +326,7 @@ class DiagnosesComposable(private val tmp_home_nav_ctrl: NavHostController,priva
         TopAppBar(//top app bar
             title = {
                 Text(
-                    "Hello Word", //greeting text
+                    "Diagnoses History", //greeting text
                     style = TextStyle(
                         color=Color.White, //set font color to white
                         fontSize = TextUnit(13f, TextUnitType.Sp), //set size of the font to 13
@@ -333,7 +344,7 @@ class DiagnosesComposable(private val tmp_home_nav_ctrl: NavHostController,priva
                 .height(50.dp) //height of the top app bar to 35dp
                 .shadow(elevation = 10.dp), //elevation of the top app bar from the main app layout
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(11, 65, 156, 255) //container color of the top app bar
+                containerColor = Color(1, 2, 75, 255) //container color of the top app bar
             ),
             actions = {
                 //delete icon button to clear the diagnosis area
@@ -342,7 +353,12 @@ class DiagnosesComposable(private val tmp_home_nav_ctrl: NavHostController,priva
                     Side menu icon
                  */
                 IconButton(onClick = { /*TODO*/
-                    home_nav_ctrl.navigate(DoctorViewScreens.CHAT_HISTORY.name)
+                    if (this_role.equals("patient")){
+                        home_nav_ctrl.navigate(MainParams.PatientViewScreens.DASHBOARD.name)
+                    }
+                    else{
+                        home_nav_ctrl.navigate(DoctorViewScreens.CHAT_HISTORY.name)
+                    }
                 },
                     colors = IconButtonDefaults.iconButtonColors(
                         //containerColor = Color.Black,
@@ -397,9 +413,10 @@ fun BoxScope.DiagnosisDetailsDialog()
     var diagnosis_time =  active_diagnosis_details.diagnosis_time
     var diagnosis_note =  active_diagnosis_details.diagnosis_note
     Column(//a column layout in the box layout
-            modifier = Modifier.fillMaxWidth(0.7f)
-            .align(alignment = Alignment.Center)//place this layout at the center of the parent
-            .background(Color.Black, shape = RoundedCornerShape(20.dp))//Change this layout to have a black color
+            modifier = Modifier
+                .fillMaxWidth(0.7f)
+                .align(alignment = Alignment.Center)//place this layout at the center of the parent
+                .background(Color.Black, shape = RoundedCornerShape(20.dp))//Change this layout to have a black color
     )
     {
         /**
@@ -421,7 +438,10 @@ fun BoxScope.DiagnosisDetailsDialog()
         showText("\tAt: $diagnosis_time")
         showText("\tNotes:\n $diagnosis_note")
         
-        Row(modifier = Modifier.padding(top = 5.dp).fillMaxWidth().align(alignment = Alignment.CenterHorizontally),
+        Row(modifier = Modifier
+            .padding(top = 5.dp)
+            .fillMaxWidth()
+            .align(alignment = Alignment.CenterHorizontally),
             horizontalArrangement = Arrangement.Center
             )
         {
@@ -431,7 +451,9 @@ fun BoxScope.DiagnosisDetailsDialog()
                     containerColor = Color.Blue,
                     disabledContainerColor = Color.Gray
                 ),
-                 modifier = Modifier.padding(top = 5.dp).align(alignment = Alignment.CenterVertically),
+                 modifier = Modifier
+                     .padding(top = 5.dp)
+                     .align(alignment = Alignment.CenterVertically),
                 onClick = { /*TODO*/
 
                     show_diagnosis_details.value = false

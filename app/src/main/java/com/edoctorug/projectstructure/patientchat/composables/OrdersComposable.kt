@@ -154,8 +154,9 @@ import java.time.Instant
 
 import kotlin.collections.mutableMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import com.edoctorug.projectstructure.patientchat.constants.MainParams
 
-class OrdersComposable(private val tmp_home_nav_ctrl: NavHostController,private val mutable_orders_map: SnapshotStateMap<String, OrderDetails>)
+class OrdersComposable(private val this_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_orders_map: SnapshotStateMap<String, OrderDetails>)
 {
 
     
@@ -164,7 +165,7 @@ class OrdersComposable(private val tmp_home_nav_ctrl: NavHostController,private 
     lateinit var show_home_dialog: MutableState<Boolean>
     lateinit var home_dialog_msg: MutableState<String>
     lateinit var main_context: Context
-    lateinit var this_role: String
+    //lateinit var this_role: String
     lateinit var global_session_id: String
     lateinit var main_hospital_man: Hospitalman
     var this_ws_listener: WSmanCB  = WSmanCB()
@@ -215,17 +216,18 @@ class OrdersComposable(private val tmp_home_nav_ctrl: NavHostController,private 
         //doctor_viewmodel = viewModel()
         //doctor_viewmodel.printCookies()
         
-        if(is_auth==false)
-        {
+        //if(is_auth==false)
+        //{
         GlobalScope.launch{
+            main_hospital_man.getOrders()
             //NetworkUtils().wslogin(this_role,global_session_id, main_hospital_man, this_ws_listener,main_context)
             //main_hospital_man.authWebSocket(this_ws_listener)
             //NetworkUtils().xwslogin(this_ws_listener,doctor_viewmodel)
             //doctor_viewmodel.wslogin(this_ws_listener)
             //doctor_viewmodel.printCookies()
         }
-        
-        }
+        OrdersHistory()
+        //}
 
     }
 
@@ -259,6 +261,7 @@ class OrdersComposable(private val tmp_home_nav_ctrl: NavHostController,private 
                             {
                                 Column(verticalArrangement = Arrangement.spacedBy(5.dp))
                                 {
+                                    /*
                                     showText("Orders History")
                                     MainComposables().OrderSummary("order 1","order_date",{
                                                 active_order_details = OrderDetails()
@@ -269,26 +272,31 @@ class OrdersComposable(private val tmp_home_nav_ctrl: NavHostController,private 
                                             active_order_details = OrderDetails()
                                             show_order_details.value = true
                                             })
-                                    
-                                    for  (item in mutable_orders_map.keys.toList())
-                                    {
-                                        var tmp_order_details = mutable_orders_map[item]
-                                        var order_details = if( tmp_order_details !=null) tmp_order_details else null //temporarily store the names in the order
+                                    */
+                                    if(mutable_orders_map.size>0) {
+                                        for (item in mutable_orders_map.keys.toList()) {
+                                            var tmp_order_details = mutable_orders_map[item]
+                                            var order_details =
+                                                if (tmp_order_details != null) tmp_order_details else null //temporarily store the names in the order
 
-                                        if(order_details!=null)
-                                        {
-                                            var order_names = order_details.order_user_names
-                                            var order_date = order_details.order_time
-                                            MainComposables().OrderSummary(order_names,order_date,{
-                                                active_order_details = order_details
-                                                show_order_details.value = true
-                                            })
+                                            if (order_details != null) {
+                                                var order_names = order_details.order_user_names
+                                                var order_date = order_details.order_time
+                                                MainComposables().OrderSummary(
+                                                    order_names,
+                                                    order_date,
+                                                    {
+                                                        active_order_details = order_details
+                                                        show_order_details.value = true
+                                                    })
+                                            } else {
+                                                break
+                                            }
+
                                         }
-                                        else
-                                        {
-                                            break
-                                        }
-                                        
+                                    }
+                                    else{
+                                        showText(text = "No Orders Available")
                                     }
                                     
                                 }
@@ -315,7 +323,7 @@ class OrdersComposable(private val tmp_home_nav_ctrl: NavHostController,private 
         TopAppBar(//top app bar
             title = {
                 Text(
-                    "Hello Word", //greeting text
+                    "Your Orders", //greeting text
                     style = TextStyle(
                         color=Color.White, //set font color to white
                         fontSize = TextUnit(13f, TextUnitType.Sp), //set size of the font to 13
@@ -333,7 +341,7 @@ class OrdersComposable(private val tmp_home_nav_ctrl: NavHostController,private 
                 .height(50.dp) //height of the top app bar to 35dp
                 .shadow(elevation = 10.dp), //elevation of the top app bar from the main app layout
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(11, 65, 156, 255) //container color of the top app bar
+                containerColor = Color(1, 2, 75, 255) //container color of the top app bar
             ),
             actions = {
                 //delete icon button to clear the order area
@@ -342,7 +350,12 @@ class OrdersComposable(private val tmp_home_nav_ctrl: NavHostController,private 
                     Side menu icon
                  */
                 IconButton(onClick = { /*TODO*/
-                    home_nav_ctrl.navigate(DoctorViewScreens.CHAT_HISTORY.name)
+                    if (this_role.equals("patient")){
+                        home_nav_ctrl.navigate(MainParams.PatientViewScreens.DASHBOARD.name)
+                    }
+                    else{
+                        home_nav_ctrl.navigate(DoctorViewScreens.CHAT_HISTORY.name)
+                    }
                 },
                     colors = IconButtonDefaults.iconButtonColors(
                         //containerColor = Color.Black,
@@ -397,9 +410,10 @@ fun BoxScope.OrderDetailsDialog()
     var order_time =  active_order_details.order_time
     var order_note =  active_order_details.order_note
     Column(//a column layout in the box layout
-            modifier = Modifier.fillMaxWidth(0.7f)
-            .align(alignment = Alignment.Center)//place this layout at the center of the parent
-            .background(Color.Black, shape = RoundedCornerShape(20.dp))//Change this layout to have a black color
+            modifier = Modifier
+                .fillMaxWidth(0.7f)
+                .align(alignment = Alignment.Center)//place this layout at the center of the parent
+                .background(Color.Black, shape = RoundedCornerShape(20.dp))//Change this layout to have a black color
     )
     {
         /**
@@ -421,7 +435,10 @@ fun BoxScope.OrderDetailsDialog()
         showText("\tAt: $order_time")
         showText("\tNotes:\n $order_note")
         
-        Row(modifier = Modifier.padding(top = 5.dp).fillMaxWidth().align(alignment = Alignment.CenterHorizontally),
+        Row(modifier = Modifier
+            .padding(top = 5.dp)
+            .fillMaxWidth()
+            .align(alignment = Alignment.CenterHorizontally),
             horizontalArrangement = Arrangement.Center
             )
         {
@@ -431,7 +448,9 @@ fun BoxScope.OrderDetailsDialog()
                     containerColor = Color.Blue,
                     disabledContainerColor = Color.Gray
                 ),
-                 modifier = Modifier.padding(top = 5.dp).align(alignment = Alignment.CenterVertically),
+                 modifier = Modifier
+                     .padding(top = 5.dp)
+                     .align(alignment = Alignment.CenterVertically),
                 onClick = { /*TODO*/
 
                     show_order_details.value = false

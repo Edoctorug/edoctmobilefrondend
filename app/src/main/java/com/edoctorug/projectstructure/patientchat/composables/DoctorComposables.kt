@@ -221,7 +221,7 @@ class DoctorComposables(): WSRouter()
     //var doctor_viewmodel = viewModel()
     init{
        // home_nav_ctrl = xhome_nav_ctrl
-
+        this_role = ""
         //this_role = xthis_role
         //global_session_id = xsession_id
 
@@ -329,11 +329,11 @@ class DoctorComposables(): WSRouter()
          * Navigation controller for the main DoctorView DashBoard
          *
          */
-        appointments_composable = AppointmentsComposable(home_nav_ctrl,mutable_appointments_map)
-        records_composable = RecordsComposable(home_nav_ctrl,mutable_records_map)
-        diagnoses_composable = DiagnosesComposable(home_nav_ctrl,mutable_diagnoses_map)
-        prescriptions_composable = PrescriptionsComposable(home_nav_ctrl,mutable_prescriptions_map)
-        orders_composable = OrdersComposable(home_nav_ctrl,mutable_orders_map)
+        appointments_composable = AppointmentsComposable(this_role,home_nav_ctrl,mutable_appointments_map)
+        records_composable = RecordsComposable(this_role,home_nav_ctrl,mutable_records_map)
+        diagnoses_composable = DiagnosesComposable(this_role,home_nav_ctrl,mutable_diagnoses_map)
+        prescriptions_composable = PrescriptionsComposable(this_role,home_nav_ctrl,mutable_prescriptions_map)
+        orders_composable = OrdersComposable(this_role,home_nav_ctrl,mutable_orders_map)
         NavHost(navController = home_nav_ctrl, startDestination = DoctorViewScreens.CHAT_HISTORY.name)
         {
             /**

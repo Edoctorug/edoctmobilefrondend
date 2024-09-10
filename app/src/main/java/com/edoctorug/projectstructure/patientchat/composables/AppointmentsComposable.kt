@@ -154,8 +154,9 @@ import java.time.Instant
 
 import kotlin.collections.mutableMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import com.edoctorug.projectstructure.patientchat.constants.MainParams.PatientViewScreens
 
-class AppointmentsComposable(private val tmp_home_nav_ctrl: NavHostController,private val mutable_appointments_map: SnapshotStateMap<String, AppointmentDetails>)
+class AppointmentsComposable(private val xthis_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_appointments_map: SnapshotStateMap<String, AppointmentDetails>)
 {
 
     
@@ -188,7 +189,7 @@ class AppointmentsComposable(private val tmp_home_nav_ctrl: NavHostController,pr
     init{
         home_nav_ctrl = tmp_home_nav_ctrl
 
-        //this_role = xthis_role
+        this_role = xthis_role
         //global_session_id = xsession_id
 
         main_hospital_man = HospitalManSingleton.getInstance()
@@ -218,7 +219,7 @@ class AppointmentsComposable(private val tmp_home_nav_ctrl: NavHostController,pr
         /*if(is_auth==false)
         {*/
         GlobalScope.launch{
-            
+            main_hospital_man.getAppointments();
             //NetworkUtils().wslogin(this_role,global_session_id, main_hospital_man, this_ws_listener,main_context)
             //main_hospital_man.authWebSocket(this_ws_listener)
             //NetworkUtils().xwslogin(this_ws_listener,doctor_viewmodel)
@@ -227,6 +228,7 @@ class AppointmentsComposable(private val tmp_home_nav_ctrl: NavHostController,pr
         }
         
        // }
+        AppointmentsHistory()
 
     }
 
@@ -260,8 +262,8 @@ class AppointmentsComposable(private val tmp_home_nav_ctrl: NavHostController,pr
                             {
                                 Column(verticalArrangement = Arrangement.spacedBy(5.dp))
                                 {
-                                    showText("Appointments History")
-                                    MainComposables().AppointmentSummary("appointment 1","appointment_date",{
+                                    //showText("Appointments History")
+                                    /*MainComposables().AppointmentSummary("appointment 1","appointment_date",{
                                                 active_appointment_details = AppointmentDetails()
                                                 show_appointment_details.value = true
                                             })
@@ -270,26 +272,36 @@ class AppointmentsComposable(private val tmp_home_nav_ctrl: NavHostController,pr
                                             active_appointment_details = AppointmentDetails()
                                             show_appointment_details.value = true
                                             })
-                                    
-                                    for  (item in mutable_appointments_map.keys.toList())
-                                    {
-                                        var tmp_appointment_details = mutable_appointments_map[item]
-                                        var appointment_details = if( tmp_appointment_details !=null) tmp_appointment_details else null //temporarily store the names in the appointment
 
-                                        if(appointment_details!=null)
-                                        {
-                                            var appointment_names = appointment_details.appointment_with
-                                            var appointment_date = appointment_details.appointment_time
-                                            MainComposables().AppointmentSummary(appointment_names,appointment_date,{
-                                                active_appointment_details = appointment_details
-                                                show_appointment_details.value = true
-                                            })
+                                     */
+                                    if(mutable_appointments_map.size>0) {
+                                        for (item in mutable_appointments_map.keys.toList()) {
+                                            var tmp_appointment_details =
+                                                mutable_appointments_map[item]
+                                            var appointment_details =
+                                                if (tmp_appointment_details != null) tmp_appointment_details else null //temporarily store the names in the appointment
+
+                                            if (appointment_details != null) {
+                                                var appointment_names =
+                                                    appointment_details.appointment_with
+                                                var appointment_date =
+                                                    appointment_details.appointment_time
+                                                MainComposables().AppointmentSummary(
+                                                    appointment_names,
+                                                    appointment_date,
+                                                    {
+                                                        active_appointment_details =
+                                                            appointment_details
+                                                        show_appointment_details.value = true
+                                                    })
+                                            } else {
+                                                break
+                                            }
+
                                         }
-                                        else
-                                        {
-                                            break
-                                        }
-                                        
+                                    }
+                                    else{
+                                        showText("Sorry, No Appointments")
                                     }
                                     
                                 }
@@ -316,7 +328,7 @@ class AppointmentsComposable(private val tmp_home_nav_ctrl: NavHostController,pr
         TopAppBar(//top app bar
             title = {
                 Text(
-                    "Hello Word", //greeting text
+                    "Appointments", //greeting text
                     style = TextStyle(
                         color=Color.White, //set font color to white
                         fontSize = TextUnit(13f, TextUnitType.Sp), //set size of the font to 13
@@ -334,7 +346,7 @@ class AppointmentsComposable(private val tmp_home_nav_ctrl: NavHostController,pr
                 .height(50.dp) //height of the top app bar to 35dp
                 .shadow(elevation = 10.dp), //elevation of the top app bar from the main app layout
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(11, 65, 156, 255) //container color of the top app bar
+                containerColor = Color(1, 2, 75, 255) //container color of the top app bar
             ),
             actions = {
                 //delete icon button to clear the appointment area
@@ -343,7 +355,14 @@ class AppointmentsComposable(private val tmp_home_nav_ctrl: NavHostController,pr
                     Side menu icon
                  */
                 IconButton(onClick = { /*TODO*/
-                    home_nav_ctrl.navigate(DoctorViewScreens.CHAT_HISTORY.name)
+
+                    if (this_role.equals("patient")){
+                        home_nav_ctrl.navigate(PatientViewScreens.DASHBOARD.name)
+                    }
+                    else{
+                        home_nav_ctrl.navigate(DoctorViewScreens.CHAT_HISTORY.name)
+                    }
+
                 },
                     colors = IconButtonDefaults.iconButtonColors(
                         //containerColor = Color.Black,

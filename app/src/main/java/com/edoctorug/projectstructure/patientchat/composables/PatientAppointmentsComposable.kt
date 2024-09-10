@@ -3,6 +3,7 @@ package com.edoctorug.projectstructure.patientchat.composables
 
 
 
+
 import android.widget.Toast
 
 import android.content.Context
@@ -154,14 +155,13 @@ import java.time.Instant
 
 import kotlin.collections.mutableMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import com.edoctorug.projectstructure.patientchat.constants.MainParams
 
-class PrescriptionsComposable(private val xthis_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_prescriptions_map: SnapshotStateMap<String, PrescriptionDetails>)
+class PatientAppointmentsComposable(private val mutable_appointments_map: SnapshotStateMap<String, AppointmentDetails>)
 {
 
-    
 
-    
+
+
     lateinit var show_home_dialog: MutableState<Boolean>
     lateinit var home_dialog_msg: MutableState<String>
     lateinit var main_context: Context
@@ -171,165 +171,153 @@ class PrescriptionsComposable(private val xthis_role: String,private val tmp_hom
     var this_ws_listener: WSmanCB  = WSmanCB()
     lateinit var home_nav_ctrl: NavHostController
 
-    lateinit var show_prescription_details: MutableState<Boolean>
+    lateinit var show_appointment_details: MutableState<Boolean>
 
     lateinit var coroutineScope: CoroutineScope
     lateinit var show_response_window: MutableState<Boolean>
 
     lateinit var response_string: String
-    lateinit var active_prescription_details: PrescriptionDetails
-    lateinit var active_prescription_uid: String
+    lateinit var active_appointment_details: AppointmentDetails
+    lateinit var active_appointment_uid: String
 
-    //lateinit var mutable_prescriptions_map: SnapshotStateMap<String, PrescriptionDetails>
+    //lateinit var mutable_appointments_map: SnapshotStateMap<String, AppointmentDetails>
     //mutableMapOf<String, String>()
 
     var is_auth = false
-    //lateinit 
+    //lateinit
     //var doctor_viewmodel = viewModel()
     init{
-        home_nav_ctrl = tmp_home_nav_ctrl
+        //home_nav_ctrl = tmp_home_nav_ctrl
 
-        this_role = xthis_role
+        //this_role = xthis_role
         //global_session_id = xsession_id
 
         main_hospital_man = HospitalManSingleton.getInstance()
-            //Hospitalman(hospital_url,hospital_port)
-       // this_ws_listener.setActiveRouter(this)
+        //Hospitalman(hospital_url,hospital_port)
+        // this_ws_listener.setActiveRouter(this)
 
-        
 
-        
+
+
     }
 
     @Composable
     fun Home()
     {
         //Login(this_role,global_session_id, main_hospital_man, this_ws_listener).login()
-       // doctor_viewmodel = ViewModelProvider(this).get(SharedHospitalModel::class.java)
-       /*mutable_prescriptions_map = remember {
-        mutableStateMapOf()
-    }*/
+        // doctor_viewmodel = ViewModelProvider(this).get(SharedHospitalModel::class.java)
+        /*mutable_appointments_map = remember {
+         mutableStateMapOf()
+     }*/
         coroutineScope =  rememberCoroutineScope()
         show_response_window = remember{ mutableStateOf(false) }
-        ///show_prescription_request = remember{ mutableStateOf(false)}
+        ///show_appointment_request = remember{ mutableStateOf(false)}
         main_context = LocalContext.current
         //doctor_viewmodel = viewModel()
         //doctor_viewmodel.printCookies()
-        
-        //if(is_auth==false)
-        ///{
+
+        /*if(is_auth==false)
+        {*/
         GlobalScope.launch{
-            main_hospital_man.getPrescriptions()
+
             //NetworkUtils().wslogin(this_role,global_session_id, main_hospital_man, this_ws_listener,main_context)
             //main_hospital_man.authWebSocket(this_ws_listener)
             //NetworkUtils().xwslogin(this_ws_listener,doctor_viewmodel)
             //doctor_viewmodel.wslogin(this_ws_listener)
             //doctor_viewmodel.printCookies()
         }
-        
-        //}
 
-        PrescriptionsHistory()
+        // }
 
     }
 
-    
+
     @Composable
-    fun PrescriptionsHistory()
+    fun AppointmentsHistory()
     {
-        var prescriptions_list = remember{ mutableStateListOf<ChatSummaryModel>() }
-        show_prescription_details = remember{ mutableStateOf(false) }
-        val prescriptions_modifier = Modifier
+        var appointments_list = remember{ mutableStateListOf<ChatSummaryModel>() }
+        show_appointment_details = remember{ mutableStateOf(false) }
+        val appointments_modifier = Modifier
             .fillMaxHeight()
             .fillMaxWidth()
         val main_box_modifier = Modifier.background(Brush.linearGradient( //make a list of colors to mix to create a linear gradient
-                                                                 colors = listOf(
-                                                                    Color.Black, Color(
-                                                                                        2, //transparency
-                                                                                        26, //red value
-                                                                                        150, //green value
-                                                                                        255 //blue value
-                                                                                      ),
-                                                                    Color.Black //black color
-                                                                   ),
-                                                                 start = Offset.Zero, //offset where to start the shading(top left corner)
-                                                                 end = Offset.Infinite, //mix the colors to fill the entire container
-                                                                 tileMode = TileMode.Mirror) //mirror the colors such that they repeat each other if the space is large
-                                                                )
-        Scaffold(topBar={PrescriptionsHistoryAppBar()})
-        {innerPadding->Surface(color= Color.Transparent,modifier = prescriptions_modifier.padding(innerPadding)) 
-                       {
-                            Box(modifier = main_box_modifier)
-                            {
-                                Column(verticalArrangement = Arrangement.spacedBy(5.dp))
-                                {
-                                    /*
-                                    showText("Prescriptions History")
-                                    MainComposables().PrescriptionSummary("prescription 1","prescription_date",{
-                                                active_prescription_details = PrescriptionDetails()
-                                                show_prescription_details.value = true
-                                            })
+            colors = listOf(
+                Color.Black, Color(
+                    2, //transparency
+                    26, //red value
+                    150, //green value
+                    255 //blue value
+                ),
+                Color.Black //black color
+            ),
+            start = Offset.Zero, //offset where to start the shading(top left corner)
+            end = Offset.Infinite, //mix the colors to fill the entire container
+            tileMode = TileMode.Mirror) //mirror the colors such that they repeat each other if the space is large
+        )
+        Scaffold(topBar={AppointmentsHistoryAppBar()})
+        {innerPadding->Surface(color= Color.Transparent,modifier = appointments_modifier.padding(innerPadding))
+        {
+            Box(modifier = main_box_modifier)
+            {
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp))
+                {
+                    showText("Appointments History")
+                    MainComposables().AppointmentSummary("appointment 1","appointment_date",{
+                        active_appointment_details = AppointmentDetails()
+                        show_appointment_details.value = true
+                    })
 
-                                    MainComposables().PrescriptionSummary("prescription 2","prescription_date",{
-                                            active_prescription_details = PrescriptionDetails()
-                                            show_prescription_details.value = true
-                                            })
-                                    */
-                                    if(mutable_prescriptions_map.size>0) {
-                                        for (item in mutable_prescriptions_map.keys.toList()) {
-                                            var tmp_prescription_details =
-                                                mutable_prescriptions_map[item]
-                                            var prescription_details =
-                                                if (tmp_prescription_details != null) tmp_prescription_details else null //temporarily store the names in the prescription
+                    MainComposables().AppointmentSummary("appointment 2","appointment_date",{
+                        active_appointment_details = AppointmentDetails()
+                        show_appointment_details.value = true
+                    })
 
-                                            if (prescription_details != null) {
-                                                var prescription_names =
-                                                    prescription_details.prescribed_for
-                                                var prescription_date =
-                                                    prescription_details.prescription_date
-                                                MainComposables().PrescriptionSummary(
-                                                    prescription_names,
-                                                    prescription_date,
-                                                    {
-                                                        active_prescription_details =
-                                                            prescription_details
-                                                        show_prescription_details.value = true
-                                                    })
-                                            } else {
-                                                break
-                                            }
+                    for  (item in mutable_appointments_map.keys.toList())
+                    {
+                        var tmp_appointment_details = mutable_appointments_map[item]
+                        var appointment_details = if( tmp_appointment_details !=null) tmp_appointment_details else null //temporarily store the names in the appointment
 
-                                        }
-                                    }
-                                    else{
-                                        showText(text = "No Prescriptions Available")
-                                    }
-                                    
-                                }
-                                
-                                if(show_prescription_details.value==true)
-                                {
-                                    PrescriptionDetailsDialog()
-                                }
+                        if(appointment_details!=null)
+                        {
+                            var appointment_names = appointment_details.appointment_with
+                            var appointment_date = appointment_details.appointment_time
+                            MainComposables().AppointmentSummary(appointment_names,appointment_date,{
+                                active_appointment_details = appointment_details
+                                show_appointment_details.value = true
+                            })
+                        }
+                        else
+                        {
+                            break
+                        }
 
-                            }
-                       }
+                    }
+
+                }
+
+                if(show_appointment_details.value==true)
+                {
+                    AppointmentDetailsDialog()
+                }
+
+            }
+        }
         }
     }
 
 
     /*
-    * App bar for the Prescriptions list view
+    * App bar for the Appointments list view
     */
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun PrescriptionsHistoryAppBar()//, reset: MutableState<Boolean>)
+    fun AppointmentsHistoryAppBar()//, reset: MutableState<Boolean>)
     {
         var coroutineScope = rememberCoroutineScope()
         TopAppBar(//top app bar
             title = {
                 Text(
-                    "Prescriptions", //greeting text
+                    "Hello Word", //greeting text
                     style = TextStyle(
                         color=Color.White, //set font color to white
                         fontSize = TextUnit(13f, TextUnitType.Sp), //set size of the font to 13
@@ -347,21 +335,17 @@ class PrescriptionsComposable(private val xthis_role: String,private val tmp_hom
                 .height(50.dp) //height of the top app bar to 35dp
                 .shadow(elevation = 10.dp), //elevation of the top app bar from the main app layout
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(1, 2, 75, 255) //container color of the top app bar
+                containerColor = Color(11, 65, 156, 255) //container color of the top app bar
             ),
             actions = {
-                //delete icon button to clear the prescription area
-                
+                //delete icon button to clear the appointment area
+
                 /**
-                    Side menu icon
+                Side menu icon
                  */
                 IconButton(onClick = { /*TODO*/
-                    if (this_role.equals("patient")){
-                        home_nav_ctrl.navigate(MainParams.PatientViewScreens.DASHBOARD.name)
-                    }
-                    else{
-                        home_nav_ctrl.navigate(DoctorViewScreens.CHAT_HISTORY.name)
-                    }
+                    //home_nav_ctrl.navigate(DoctorViewScreens.CHAT_HISTORY.name)
+
                 },
                     colors = IconButtonDefaults.iconButtonColors(
                         //containerColor = Color.Black,
@@ -403,67 +387,61 @@ class PrescriptionsComposable(private val xthis_role: String,private val tmp_hom
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BoxScope.PrescriptionDetailsDialog()
-{
-    var confirm_prescription_state = remember {
-        mutableStateOf(false)
-    }
-    
-    var prescription_user_name = active_prescription_details.prescribed_for
-    var prescription_uuid = active_prescription_details.prescription_id
-    var prescription_time =  active_prescription_details.prescription_date
-    var prescription_note =  active_prescription_details.prescription_note
-    Column(//a column layout in the box layout
-            modifier = Modifier
-                .fillMaxWidth(0.7f)
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun BoxScope.AppointmentDetailsDialog()
+    {
+        var confirm_appointment_state = remember {
+            mutableStateOf(false)
+        }
+
+        var appointment_user_name = active_appointment_details.appointment_with
+        var appointment_uuid = active_appointment_details.appointment_uuid
+        var appointment_time =  active_appointment_details.appointment_time
+        var appointment_note =  active_appointment_details.appointment_note
+        Column(//a column layout in the box layout
+            modifier = Modifier.fillMaxWidth(0.7f)
                 .align(alignment = Alignment.Center)//place this layout at the center of the parent
                 .background(Color.Black, shape = RoundedCornerShape(20.dp))//Change this layout to have a black color
-    )
-    {
-        /**
-        * Prescription title
-        */
-        Text(
-            "Prescription Details",
-            modifier = Modifier
-                .padding(5.dp)
-                .align(alignment = Alignment.CenterHorizontally), style = TextStyle(
-                fontSize = TextUnit(10f, TextUnitType.Sp),
-                fontStyle = FontStyle.Normal,
-                color = Color.White,
-                fontFamily = FontFamily.Monospace,
-                letterSpacing = TextUnit(2f, TextUnitType.Sp)
-            )//Label for this layout
         )
-        showText("\tWith: $prescription_user_name")
-        showText("\tAt: $prescription_time")
-        showText("\tNotes:\n $prescription_note")
-        
-        Row(modifier = Modifier
-            .padding(top = 5.dp)
-            .fillMaxWidth()
-            .align(alignment = Alignment.CenterHorizontally),
-            horizontalArrangement = Arrangement.Center
-            )
         {
-            
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Blue,
-                    disabledContainerColor = Color.Gray
-                ),
-                 modifier = Modifier
-                     .padding(top = 5.dp)
-                     .align(alignment = Alignment.CenterVertically),
-                onClick = { /*TODO*/
+            /**
+             * Appointment title
+             */
+            Text(
+                "Appointment Details",
+                modifier = Modifier
+                    .padding(5.dp)
+                    .align(alignment = Alignment.CenterHorizontally), style = TextStyle(
+                    fontSize = TextUnit(10f, TextUnitType.Sp),
+                    fontStyle = FontStyle.Normal,
+                    color = Color.White,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = TextUnit(2f, TextUnitType.Sp)
+                )//Label for this layout
+            )
+            showText("\tWith: $appointment_user_name")
+            showText("\tAt: $appointment_time")
+            showText("\tNotes:\n $appointment_note")
 
-                    show_prescription_details.value = false
-
-                })
+            Row(modifier = Modifier.padding(top = 5.dp).fillMaxWidth().align(alignment = Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.Center
+            )
             {
-            
+
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Blue,
+                        disabledContainerColor = Color.Gray
+                    ),
+                    modifier = Modifier.padding(top = 5.dp).align(alignment = Alignment.CenterVertically),
+                    onClick = { /*TODO*/
+
+                        show_appointment_details.value = false
+
+                    })
+                {
+
                     Icon(Icons.Filled.Biotech, contentDescription = "")
                     Text(
                         "OKAY", style = TextStyle(
@@ -473,36 +451,36 @@ fun BoxScope.PrescriptionDetailsDialog()
                             letterSpacing = TextUnit(2f, TextUnitType.Sp)
                         )
                     )
-                
-            }
+
+                }
 
 
 
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red,
-                    disabledContainerColor = Color.Blue
-                ),
-                modifier = Modifier
-                    //.padding(10.dp)
-                    .align(alignment = Alignment.CenterVertically),
-                    
-                onClick = { /*TODO*/
-                    
-                })
-            {
-                Icon(Icons.Filled.Biotech, contentDescription = "")
-                Text(
-                    "CANCEL", style = TextStyle(
-                        fontSize = TextUnit(10f, TextUnitType.Sp),
-                        fontStyle = FontStyle.Normal,
-                        fontFamily = FontFamily.Monospace,
-                        letterSpacing = TextUnit(2f, TextUnitType.Sp)
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red,
+                        disabledContainerColor = Color.Blue
+                    ),
+                    modifier = Modifier
+                        //.padding(10.dp)
+                        .align(alignment = Alignment.CenterVertically),
+
+                    onClick = { /*TODO*/
+
+                    })
+                {
+                    Icon(Icons.Filled.Biotech, contentDescription = "")
+                    Text(
+                        "CANCEL", style = TextStyle(
+                            fontSize = TextUnit(10f, TextUnitType.Sp),
+                            fontStyle = FontStyle.Normal,
+                            fontFamily = FontFamily.Monospace,
+                            letterSpacing = TextUnit(2f, TextUnitType.Sp)
+                        )
                     )
-                )
+                }
             }
         }
     }
-}
 
 }

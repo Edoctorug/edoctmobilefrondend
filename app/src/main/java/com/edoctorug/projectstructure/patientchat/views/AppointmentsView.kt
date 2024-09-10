@@ -128,10 +128,15 @@ import com.edoctorug.projectstructure.patientchat.composables.MainComposables
 import com.edoctorug.projectstructure.patientchat.composables.DoctorComposables
 
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.ViewModelProvider
 import com.edoctorug.projectstructure.patientchat.NetworkUtils
 import com.edoctorug.projectstructure.patientchat.SharedHospitalModel
+import com.edoctorug.projectstructure.patientchat.composables.AppointmentsComposable
+import com.edoctorug.projectstructure.patientchat.composables.PatientAppointmentsComposable
+import patientdoctorwebsockets.Models.AppointmentDetails
 
 import java.time.Instant
 /**
@@ -141,7 +146,9 @@ import java.time.Instant
 class AppointmentsView : ComponentActivity() {
 
     lateinit var doctor_view_model: SharedHospitalModel;
-    var doctor_composable = DoctorComposables()
+    //var doctor_composable = DoctorComposables()
+    lateinit var appointments_composable: PatientAppointmentsComposable
+    lateinit var appointments_holder: SnapshotStateMap<String, AppointmentDetails>
 override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
@@ -201,6 +208,11 @@ override fun onCreate(savedInstanceState: Bundle?) {
                 doctor_view_model.printCookies()
             }
             */
+            appointments_holder =  remember {
+                mutableStateMapOf()
+            }
+
+            appointments_composable = PatientAppointmentsComposable(appointments_holder)
             println("using global session: "+global_session_id) //print the global session id
             if((user_names==null)) //check if the user_names are null
             {
@@ -214,7 +226,8 @@ override fun onCreate(savedInstanceState: Bundle?) {
            // showText("Test Doctor")
             //MainUI()
 
-            doctor_composable.Home()
+            //doctor_composable.Home()
+            appointments_composable.Home()
 
 
         }

@@ -1,29 +1,24 @@
-package com.edoctorug.projectstructure.patientchat.views
+package com.edoctorug.projectstructure.patientchat.composables
 
-
-//import com.edoctorug.projectstructure.patientchat.views.ui.theme.PatientChatTheme
-import java.time.Instant
-import android.widget.Toast
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,46 +30,50 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Biotech
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Face
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.sharp.ArrowCircleRight
+import androidx.compose.material.icons.rounded.Deck
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.sharp.ArrowCircleRight
 import androidx.compose.material.icons.sharp.ArrowDropDown
 import androidx.compose.material.icons.sharp.ArrowDropUp
+import androidx.compose.material.icons.sharp.DoNotDisturb
 import androidx.compose.material.icons.twotone.AddCircle
-import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.DeleteOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -82,73 +81,41 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.edoctorug.projectstructure.patientchat.ChatModel
+import com.edoctorug.projectstructure.patientchat.HospitalManSingleton
 import com.edoctorug.projectstructure.patientchat.MainActivity
 import com.edoctorug.projectstructure.patientchat.R
 import com.edoctorug.projectstructure.patientchat.WSRouterX
+import com.edoctorug.projectstructure.patientchat.constants.ConnectionParams
+import com.edoctorug.projectstructure.patientchat.constants.MainParams
 import com.spr.jetpack_loading.components.indicators.PacmanIndicator
-import android.util.Log
-import android.view.RoundedCorner
-import androidx.annotation.RequiresApi
-import androidx.compose.material.icons.automirrored.outlined.ExitToApp
-import androidx.compose.material.icons.outlined.ExitToApp
-import androidx.compose.material.icons.rounded.Deck
-import androidx.compose.material.icons.sharp.DoNotDisturb
-import androidx.compose.material.icons.twotone.ArrowBackIos
-import androidx.compose.material.icons.twotone.DeleteOutline
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import patientdoctorwebsockets.Hospitalman
-import patientdoctorwebsockets.WSRouter
-import patientdoctorwebsockets.WSmanCB
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.material3.TimePicker
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.ui.graphics.RectangleShape
-import com.edoctorug.projectstructure.patientchat.HospitalManSingleton
-import com.edoctorug.projectstructure.patientchat.composables.AppointmentsComposable
-import com.edoctorug.projectstructure.patientchat.composables.DiagnosesComposable
-import com.edoctorug.projectstructure.patientchat.composables.OrdersComposable
-import com.edoctorug.projectstructure.patientchat.composables.PrescriptionsComposable
-import com.edoctorug.projectstructure.patientchat.composables.RecordsComposable
-import com.edoctorug.projectstructure.patientchat.constants.ConnectionParams
-import com.edoctorug.projectstructure.patientchat.constants.MainParams.PatientViewScreens
 import patientdoctorwebsockets.Models.AppointmentDetails
 import patientdoctorwebsockets.Models.ChatDetails
-import patientdoctorwebsockets.Models.DiagnosisDetails
-import patientdoctorwebsockets.Models.OrderDetails
-import patientdoctorwebsockets.Models.PrescriptionDetails
-import patientdoctorwebsockets.Models.RecordDetails
+import patientdoctorwebsockets.WSmanCB
+import java.time.Instant
 
-class PatientView : ComponentActivity() {
-
+class PatientComposables {
     val hospital_url = ConnectionParams.hospital_url //localhost
     /**
-    *Variable containing the port the hospital's server backend is listening on
-    */
+     *Variable containing the port the hospital's server backend is listening on
+     */
     var hospital_port = ConnectionParams.hospital_port //port number the server backend is listening to
 
     lateinit var chat_details: ChatDetails
@@ -162,7 +129,7 @@ class PatientView : ComponentActivity() {
     lateinit var user_matched: MutableState<Boolean>
 
     lateinit var main_hospital_man: Hospitalman;// = //Hospitalman(hospital_url,hospital_port)
-    var this_ws_listener: WSmanCB  = WSmanCB() //web socket listener
+    var this_ws_listener: WSmanCB = WSmanCB() //web socket listener
 
     lateinit var main_nav_ctrl: NavHostController //nav host controller to use for the patient view
 
@@ -178,133 +145,11 @@ class PatientView : ComponentActivity() {
 
     lateinit var this_context: Context
     lateinit var appointments_composable: AppointmentsComposable
-
-    lateinit var prescriptions_composable: PrescriptionsComposable
-    lateinit var diagnoses_composable: DiagnosesComposable
-
-    lateinit var records_composable: RecordsComposable
-    lateinit var orders_composable: OrdersComposable
-
     var global_session_id: String  = ""
     //var user_role: String? = ""
     //var user_names = ""
     var active_speciality: String = "" //doctor field the user wants to chat with
     lateinit var appointments_holder: SnapshotStateMap<String, AppointmentDetails>
-    lateinit var mutable_records_map: SnapshotStateMap<String, RecordDetails>
-    lateinit var mutable_diagnoses_map: SnapshotStateMap<String, DiagnosisDetails>
-    lateinit var mutable_prescriptions_map: SnapshotStateMap<String, PrescriptionDetails>
-    lateinit var mutable_orders_map: SnapshotStateMap<String, OrderDetails>
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        var user_names: String? = intent.getStringExtra("user_names")
-        var user_role: String?  = intent.getStringExtra("user_role")
-        var tmp_session_id: String? = intent.getStringExtra("USER_SESSION_ID")
-        var tmp_specialities: Array<String>? = intent.getStringArrayExtra("SPECIALITIES")
-        main_hospital_man = HospitalManSingleton.getInstance()
-
-
-        specialities = if (tmp_specialities!=null) tmp_specialities else emptyArray<String>()
-
-        println(specialities)
-        
-
-
-
-
-
-
-        println("temp global session: "+tmp_session_id)
-
-
-        global_session_id = if (tmp_session_id!=null) tmp_session_id else ""
-
-        this_user_role = if (user_role!=null) user_role else ""
-
-
-        GlobalScope.launch {
-            wslogin(active_speciality,global_session_id, main_hospital_man, this_ws_listener)
-        }
-
-        setContent{
-            //hospitalman = remember{ mutableStateOf(main_hospital_man)}
-            chats = remember{ mutableStateListOf<ChatModel>() }
-            result_msg = remember { mutableStateOf("") }
-            chat_loading_fin = remember {mutableStateOf(false)}
-
-            appointments_holder =  remember {
-                mutableStateMapOf()
-            }
-
-            mutable_records_map = remember {mutableStateMapOf()}
-            mutable_diagnoses_map = remember {mutableStateMapOf()}
-            mutable_prescriptions_map = remember {mutableStateMapOf()}
-            mutable_orders_map = remember {mutableStateMapOf()}
-            //chat_loading_fin = remember {mutableStateOf(false)}
-
-            show_date_picker = remember {mutableStateOf(false)}
-
-            show_side_menu = remember {mutableStateOf(false)}
-
-
-
-            this_context = LocalContext.current
-            //result_msg = remember { mutableStateOf("") }
-
-             //assign the nav controller
-            user_matched = remember { mutableStateOf(false) }
-
-            
-            
-
-            println("using global session: "+global_session_id)
-            if((user_names==null))
-            {
-                startActivity(Intent(this_context,MainActivity::class.java))
-            }
-            this_patient_name = if (user_names!=null) user_names else ""
-
-
-
-            MainUI()
-
-
-        }
-
-
-    }
-
-    /*
-    override fun onStart() {
-        super.onStart()
-
-        setContent {
-            MainUI()
-        }
-    }
-
-    override fun onRestart() {
-        super.onRestart()
-        setContent {
-            MainUI()
-        }
-
-    }
-
-    override fun onResume() {
-        super.onResume()
-        setContent {
-            MainUI()
-        }
-    }
-
-    */
-    init {
-        //this_patient_name = apatient_name
-        //this_doctor_name = adoctor_name
-
-    }
-
-    //@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 
     fun updateChats(chat_value: String)
     {
@@ -317,10 +162,6 @@ class PatientView : ComponentActivity() {
         var auth_bool = zhospital_man.authWebSocket(zwsmancb,session_id)
         var auth_bool2 = zhospital_man.findOnlineDoc(this_speciality)
 
-    }
-
-    suspend fun wsAppointments(zhospital_man: Hospitalman){
-        zhospital_man.getAppointments()
     }
 
     suspend fun wssendMsg(chat_msg: String, zhospital_man: Hospitalman)
@@ -337,11 +178,12 @@ class PatientView : ComponentActivity() {
 
     }
 
+    /*
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?)
     {
         super.onActivityResult(requestCode,resultCode,resultData)
 
-        if((requestCode==1900) and (resultCode==RESULT_OK))
+        if((requestCode==1900) and (resultCode== ComponentActivity.RESULT_OK))
         {
             resultData?.data?.also { uri ->
                 var media_chat: ChatModel = ChatModel(uri.toString(),true,1998)
@@ -351,6 +193,7 @@ class PatientView : ComponentActivity() {
         }
 
     }
+    */
 
     /**
      * MainUI calls the chat dashboard
@@ -364,16 +207,7 @@ class PatientView : ComponentActivity() {
         active_wsrouterx = WSRouterX(chats,result_msg,chat_loading_fin)
         this_ws_listener.setActiveRouter(active_wsrouterx)
 
-        active_wsrouterx.setDataHolders(appointments_holder,mutable_prescriptions_map,mutable_orders_map,mutable_records_map,mutable_diagnoses_map)
-
-
-
         appointments_composable = AppointmentsComposable("patient",main_nav_ctrl,appointments_holder)
-        records_composable = RecordsComposable("patient",main_nav_ctrl,mutable_records_map)
-        diagnoses_composable = DiagnosesComposable("patient",main_nav_ctrl,mutable_diagnoses_map)
-        prescriptions_composable = PrescriptionsComposable("patient",main_nav_ctrl,mutable_prescriptions_map)
-        orders_composable = OrdersComposable("patient",main_nav_ctrl,mutable_orders_map)
-
         /*
         LaunchedEffect(Unit){
             scroll_state.scrollTo(100)
@@ -387,7 +221,8 @@ class PatientView : ComponentActivity() {
             //bottomBar = {MessageBox(chats,scroll_state)}
 
         )
-        {innerPadding->Surface( //parent ui layout holding the patientchat components
+        {innerPadding->
+            Surface( //parent ui layout holding the patientchat components
             color= Color.Transparent, //make the background color transparent
             modifier = Modifier
                 .padding(innerPadding)//user inset data from the appbars
@@ -396,7 +231,8 @@ class PatientView : ComponentActivity() {
 
         ) {
             Box( //box to hold chat interface
-                modifier = Modifier.background(Brush.linearGradient( //make a list of colors to mix to create a linear gradient
+                modifier = Modifier.background(
+                    Brush.linearGradient( //make a list of colors to mix to create a linear gradient
                     colors = listOf(
                         Color.Black, Color(
                             2, //transparency
@@ -429,7 +265,7 @@ class PatientView : ComponentActivity() {
                 }
 
                 */
-                    dashNav()
+                dashNav()
 
             }
         }
@@ -437,12 +273,7 @@ class PatientView : ComponentActivity() {
 
     }
 
-    override fun onBackPressed() {
-        result_msg.value = ""
-        chat_loading_fin.value = false
-        Log.i("BUTTON STATUS", "Back button pressed")
-        super.onBackPressed()
-    }
+
     @Composable
     fun BoxScope.dashNav()
     {
@@ -450,9 +281,9 @@ class PatientView : ComponentActivity() {
          * Navigation controller for the main PatientView DashBoard
          */
         var scroll_state = rememberScrollState()
-        NavHost(navController = main_nav_ctrl, startDestination = PatientViewScreens.DASHBOARD.name)
+        NavHost(navController = main_nav_ctrl, startDestination = MainParams.PatientViewScreens.DASHBOARD.name)
         {
-            composable(PatientViewScreens.DASHBOARD.name)
+            composable(MainParams.PatientViewScreens.DASHBOARD.name)
             {
                 Box(modifier = Modifier
                     .fillMaxHeight()
@@ -462,7 +293,7 @@ class PatientView : ComponentActivity() {
                 }
             }
 
-            composable(PatientViewScreens.APPOINTMENTS.name)
+            composable(MainParams.PatientViewScreens.APPOINTMENTS.name)
             {
                 Box(modifier = Modifier
                     .fillMaxHeight()
@@ -472,47 +303,7 @@ class PatientView : ComponentActivity() {
                 }
             }
 
-            composable(PatientViewScreens.PRESCRIPTIONS.name)
-            {
-                Box(modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth())
-                {
-                    prescriptions_composable.Home()
-                }
-            }
-
-            composable(PatientViewScreens.DIAGNOSES.name)
-            {
-                Box(modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth())
-                {
-                    diagnoses_composable.Home()
-                }
-            }
-
-            composable(PatientViewScreens.RECORDS.name)
-            {
-                Box(modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth())
-                {
-                    records_composable.Home()
-                }
-            }
-
-            composable(PatientViewScreens.ORDERS.name)
-            {
-                Box(modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth())
-                {
-                    orders_composable.Home()
-                }
-            }
-
-            composable(PatientViewScreens.CHAT.name)
+            composable(MainParams.PatientViewScreens.CHAT.name)
             {
                 Box(modifier = Modifier
                     .fillMaxHeight()
@@ -522,7 +313,7 @@ class PatientView : ComponentActivity() {
                 }
             }
 
-            composable(PatientViewScreens.SPECIALITY.name)
+            composable(MainParams.PatientViewScreens.SPECIALITY.name)
             {
                 Box(modifier = Modifier
                     .fillMaxHeight()
@@ -532,7 +323,7 @@ class PatientView : ComponentActivity() {
                 }
             }
 
-            composable(PatientViewScreens.CHAT_LOADER.name)
+            composable(MainParams.PatientViewScreens.CHAT_LOADER.name)
             {
                 Box(modifier = Modifier
                     .fillMaxHeight()
@@ -555,7 +346,7 @@ class PatientView : ComponentActivity() {
 
                         ChatUI(chats, scroll_state)
                     }
-                    
+
                 }
             }
         }
@@ -584,70 +375,77 @@ class PatientView : ComponentActivity() {
             /**
              * Visit doctor Button
              */
+            /**
+             * Visit doctor Button
+             */
             item {
 
                 var this_enabled = remember{ mutableStateOf(true) }
 
 
                 Button(
-                            onClick = { /*TODO*/
-                                        global_enabled.value = !global_enabled.value
-                                        this_enabled.value = !this_enabled.value
-                                       last_enabled = this_enabled
+                    onClick = { /*TODO*/
+                        global_enabled.value = !global_enabled.value
+                        this_enabled.value = !this_enabled.value
+                        last_enabled = this_enabled
 
-                                        main_nav_ctrl.navigate(PatientViewScreens.SPECIALITY.name)
-                                      },
-                            enabled = (this_enabled.value),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Black,
-                                disabledContainerColor = Color.DarkGray
-                            ),
+                        main_nav_ctrl.navigate(MainParams.PatientViewScreens.SPECIALITY.name)
+                    },
+                    enabled = (this_enabled.value),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Black,
+                        disabledContainerColor = Color.DarkGray
+                    ),
 
-                            shape = RoundedCornerShape(4.dp)
+                    shape = RoundedCornerShape(4.dp)
+                )
+                {
+                    ConstraintLayout(modifier = Modifier.background(
+                        Color.Transparent,
+
+                        // (2, //transparency 26, //red value 150, //green value 255 //blue value),
+                    )) {
+                        val (icon_ref, text_ref) = createRefs()
+
+                        Icon(   Icons.Filled.Biotech,
+                            contentDescription = "Click Here To Visit doctor",
+                            tint= Color.White,
+                            modifier = Modifier.constrainAs(icon_ref)
+                            {
+                                top.linkTo(parent.top, margin = 0.dp)
+                            }
                         )
-                        {
-                            ConstraintLayout(modifier = Modifier.background(
-                                Color.Transparent,
 
-                                // (2, //transparency 26, //red value 150, //green value 255 //blue value),
-                            )) {
-                                val (icon_ref, text_ref) = createRefs()
-
-                                Icon(   Icons.Filled.Biotech,
-                                contentDescription = "Click Here To Visit doctor",
-                                tint= Color.White,
-                                    modifier = Modifier.constrainAs(icon_ref)
-                                    {
-                                        top.linkTo(parent.top, margin = 0.dp)
-                                    }
+                        Text( //Registration Box Heading
+                            text = "Visit Doctor",
+                            modifier = Modifier
+                                //.padding(10.dp)
+                                .constrainAs(text_ref)
+                                {
+                                    absoluteLeft.linkTo(icon_ref.absoluteLeft, margin = 20.dp)
+                                }
+                            //  .align(alignment = Alignment.CenterHorizontally)
+                            , style = TextStyle(
+                                fontSize = TextUnit(10f, TextUnitType.Sp),
+                                fontStyle = FontStyle.Normal,
+                                color = Color.White,
+                                fontFamily = FontFamily.Monospace,
+                                letterSpacing = TextUnit(
+                                    integerResource(id = R.integer.text_spacing_default).toFloat(),
+                                    TextUnitType.Sp
                                 )
-
-                            Text( //Registration Box Heading
-                                text = "Visit Doctor",
-                                modifier = Modifier
-                                    //.padding(10.dp)
-                                    .constrainAs(text_ref)
-                                    {
-                                        absoluteLeft.linkTo(icon_ref.absoluteLeft, margin = 20.dp)
-                                    }
-                                //  .align(alignment = Alignment.CenterHorizontally)
-                                , style = TextStyle(
-                                    fontSize = TextUnit(10f, TextUnitType.Sp),
-                                    fontStyle = FontStyle.Normal,
-                                    color = Color.White,
-                                    fontFamily = FontFamily.Monospace,
-                                    letterSpacing = TextUnit(
-                                        integerResource(id = R.integer.text_spacing_default).toFloat(),
-                                        TextUnitType.Sp
-                                    )
-                                )//Label for this layout
-                            )
-                        }
+                            )//Label for this layout
+                        )
+                    }
 
 
 
                 }
             }
+
+            /**
+             * Get Appointments Button
+             */
 
             /**
              * Get Appointments Button
@@ -669,7 +467,7 @@ class PatientView : ComponentActivity() {
                         appointments_activity.putExtra("SPECIALITIES",specialities)
 
                         startActivity(appointments_activity)*/
-                        main_nav_ctrl.navigate(PatientViewScreens.APPOINTMENTS.name)
+                        main_nav_ctrl.navigate(MainParams.PatientViewScreens.APPOINTMENTS.name)
                     },
                     enabled = (this_enabled.value),
                     colors = ButtonDefaults.buttonColors(
@@ -723,268 +521,8 @@ class PatientView : ComponentActivity() {
             }
 
             /**
-             * Get Diagnoses Button
+             * Account Settings Button
              */
-            item {
-
-                var this_enabled = remember{ mutableStateOf(true) }
-
-                Button(
-                    onClick = { /*TODO*/
-                        //global_enabled = this_enabled
-                        this_enabled.value = !this_enabled.value
-                        last_enabled = this_enabled
-
-                        main_nav_ctrl.navigate(PatientViewScreens.DIAGNOSES.name)
-                    },
-                    enabled = (this_enabled.value),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,
-                        disabledContainerColor = Color.DarkGray
-                    ),
-                    shape = RoundedCornerShape(4.dp)
-                )
-                {
-                    ConstraintLayout(modifier = Modifier.background(
-                        Color.Transparent,
-
-                        // (2, //transparency 26, //red value 150, //green value 255 //blue value),
-                    )) {
-                        val (icon_ref, text_ref) = createRefs()
-
-                        Icon(   Icons.Filled.CalendarMonth,
-                            contentDescription = "Diagnoses",
-                            tint= Color.White,
-                            modifier = Modifier.constrainAs(icon_ref)
-                            {
-                                top.linkTo(parent.top, margin = 0.dp)
-                            }
-                        )
-
-                        Text( //Diagnoses Heading
-                            text = "Diagnoses",
-                            modifier = Modifier
-                                //.padding(10.dp)
-                                .constrainAs(text_ref)
-                                {
-                                    absoluteLeft.linkTo(icon_ref.absoluteLeft, margin = 25.dp)
-                                }
-                            //  .align(alignment = Alignment.CenterHorizontally)
-                            , style = TextStyle(
-                                fontSize = TextUnit(10f, TextUnitType.Sp),
-                                fontStyle = FontStyle.Normal,
-                                color = Color.White,
-                                fontFamily = FontFamily.Monospace,
-                                letterSpacing = TextUnit(
-                                    integerResource(id = R.integer.text_spacing_default).toFloat(),
-                                    TextUnitType.Sp
-                                )
-                            )//Label for this layout
-                        )
-                    }
-
-
-
-                }
-            }
-
-            /**
-             * Get Prescriptions Button
-             */
-            item {
-
-                var this_enabled = remember{ mutableStateOf(true) }
-
-                Button(
-                    onClick = { /*TODO*/
-                        //global_enabled = this_enabled
-                        this_enabled.value = !this_enabled.value
-                        last_enabled = this_enabled
-
-                        main_nav_ctrl.navigate(PatientViewScreens.PRESCRIPTIONS.name)
-                    },
-                    enabled = (this_enabled.value),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,
-                        disabledContainerColor = Color.DarkGray
-                    ),
-                    shape = RoundedCornerShape(4.dp)
-                )
-                {
-                    ConstraintLayout(modifier = Modifier.background(
-                        Color.Transparent,
-
-                        // (2, //transparency 26, //red value 150, //green value 255 //blue value),
-                    )) {
-                        val (icon_ref, text_ref) = createRefs()
-
-                        Icon(   Icons.Filled.CalendarMonth,
-                            contentDescription = "Prescriptions",
-                            tint= Color.White,
-                            modifier = Modifier.constrainAs(icon_ref)
-                            {
-                                top.linkTo(parent.top, margin = 0.dp)
-                            }
-                        )
-
-                        Text( //Prescriptions Heading
-                            text = "Prescriptions",
-                            modifier = Modifier
-                                //.padding(10.dp)
-                                .constrainAs(text_ref)
-                                {
-                                    absoluteLeft.linkTo(icon_ref.absoluteLeft, margin = 25.dp)
-                                }
-                            //  .align(alignment = Alignment.CenterHorizontally)
-                            , style = TextStyle(
-                                fontSize = TextUnit(10f, TextUnitType.Sp),
-                                fontStyle = FontStyle.Normal,
-                                color = Color.White,
-                                fontFamily = FontFamily.Monospace,
-                                letterSpacing = TextUnit(
-                                    integerResource(id = R.integer.text_spacing_default).toFloat(),
-                                    TextUnitType.Sp
-                                )
-                            )//Label for this layout
-                        )
-                    }
-
-
-
-                }
-            }
-
-            /**
-             * Get Orders Button
-             */
-            item {
-
-                var this_enabled = remember{ mutableStateOf(true) }
-
-                Button(
-                    onClick = { /*TODO*/
-                        //global_enabled = this_enabled
-                        this_enabled.value = !this_enabled.value
-                        last_enabled = this_enabled
-
-                        main_nav_ctrl.navigate(PatientViewScreens.ORDERS.name)
-                    },
-                    enabled = (this_enabled.value),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,
-                        disabledContainerColor = Color.DarkGray
-                    ),
-                    shape = RoundedCornerShape(4.dp)
-                )
-                {
-                    ConstraintLayout(modifier = Modifier.background(
-                        Color.Transparent,
-
-                        // (2, //transparency 26, //red value 150, //green value 255 //blue value),
-                    )) {
-                        val (icon_ref, text_ref) = createRefs()
-
-                        Icon(   Icons.Filled.CalendarMonth,
-                            contentDescription = "Orders",
-                            tint= Color.White,
-                            modifier = Modifier.constrainAs(icon_ref)
-                            {
-                                top.linkTo(parent.top, margin = 0.dp)
-                            }
-                        )
-
-                        Text( //Orders Heading
-                            text = "Orders",
-                            modifier = Modifier
-                                //.padding(10.dp)
-                                .constrainAs(text_ref)
-                                {
-                                    absoluteLeft.linkTo(icon_ref.absoluteLeft, margin = 25.dp)
-                                }
-                            //  .align(alignment = Alignment.CenterHorizontally)
-                            , style = TextStyle(
-                                fontSize = TextUnit(10f, TextUnitType.Sp),
-                                fontStyle = FontStyle.Normal,
-                                color = Color.White,
-                                fontFamily = FontFamily.Monospace,
-                                letterSpacing = TextUnit(
-                                    integerResource(id = R.integer.text_spacing_default).toFloat(),
-                                    TextUnitType.Sp
-                                )
-                            )//Label for this layout
-                        )
-                    }
-
-
-
-                }
-            }
-
-            /**
-             * Get Records Button
-             */
-            item {
-
-                var this_enabled = remember{ mutableStateOf(true) }
-
-                Button(
-                    onClick = { /*TODO*/
-                        //global_enabled = this_enabled
-                        this_enabled.value = !this_enabled.value
-                        last_enabled = this_enabled
-
-                        main_nav_ctrl.navigate(PatientViewScreens.RECORDS.name)
-                    },
-                    enabled = (this_enabled.value),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,
-                        disabledContainerColor = Color.DarkGray
-                    ),
-                    shape = RoundedCornerShape(4.dp)
-                )
-                {
-                    ConstraintLayout(modifier = Modifier.background(
-                        Color.Transparent,
-
-                        // (2, //transparency 26, //red value 150, //green value 255 //blue value),
-                    )) {
-                        val (icon_ref, text_ref) = createRefs()
-
-                        Icon(   Icons.Filled.CalendarMonth,
-                            contentDescription = "Records",
-                            tint= Color.White,
-                            modifier = Modifier.constrainAs(icon_ref)
-                            {
-                                top.linkTo(parent.top, margin = 0.dp)
-                            }
-                        )
-
-                        Text( //Records Heading
-                            text = "Records",
-                            modifier = Modifier
-                                //.padding(10.dp)
-                                .constrainAs(text_ref)
-                                {
-                                    absoluteLeft.linkTo(icon_ref.absoluteLeft, margin = 25.dp)
-                                }
-                            //  .align(alignment = Alignment.CenterHorizontally)
-                            , style = TextStyle(
-                                fontSize = TextUnit(10f, TextUnitType.Sp),
-                                fontStyle = FontStyle.Normal,
-                                color = Color.White,
-                                fontFamily = FontFamily.Monospace,
-                                letterSpacing = TextUnit(
-                                    integerResource(id = R.integer.text_spacing_default).toFloat(),
-                                    TextUnitType.Sp
-                                )
-                            )//Label for this layout
-                        )
-                    }
-
-
-
-                }
-            }
 
             /**
              * Account Settings Button
@@ -1053,6 +591,10 @@ class PatientView : ComponentActivity() {
             /**
              * Logout Button
              */
+
+            /**
+             * Logout Button
+             */
             item {
 
                 var this_enabled = remember{ mutableStateOf(true) }
@@ -1067,7 +609,7 @@ class PatientView : ComponentActivity() {
                         main_nav_ctrl.navigate(PatientViewScreens.SPECIALITY.name)
                          */
                         HospitalManSingleton.resetInstance()
-                        startActivity(Intent(this_context,MainActivity::class.java))
+                        this_context.startActivity(Intent(this_context, MainActivity::class.java))
                     },
                     enabled = (this_enabled.value),
                     colors = ButtonDefaults.buttonColors(
@@ -1132,7 +674,7 @@ class PatientView : ComponentActivity() {
                 .align(alignment = Alignment.Center)
         )
         {
-            
+
             if ((result_msg.value == "") && (chat_loading_fin.value!=true)){
                 showText(text = "Matching Please Wait ......")
                 PacmanIndicator(ballDiameter = 10f)
@@ -1161,7 +703,7 @@ class PatientView : ComponentActivity() {
 
             }
 
-            
+
         }
     }
 
@@ -1223,7 +765,7 @@ class PatientView : ComponentActivity() {
             )
             {
                 IconButton(
-                    modifier = Modifier.background(color=Color.Transparent,shape = RoundedCornerShape(4.dp)),
+                    modifier = Modifier.background(color= Color.Transparent,shape = RoundedCornerShape(4.dp)),
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Black,
                         disabledContainerColor = Color.DarkGray
@@ -1244,7 +786,7 @@ class PatientView : ComponentActivity() {
                     )
                 }
                 IconButton(
-                    modifier = Modifier.background(color=Color.Transparent,shape = RoundedCornerShape(4.dp)),
+                    modifier = Modifier.background(color= Color.Transparent,shape = RoundedCornerShape(4.dp)),
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Black,
                         disabledContainerColor = Color.DarkGray
@@ -1270,28 +812,26 @@ class PatientView : ComponentActivity() {
             )
             {
                 IconButton(
-                    modifier = Modifier.background(color=Color.Transparent,shape = RoundedCornerShape(4.dp)),
+                    modifier = Modifier.background(color= Color.Transparent,shape = RoundedCornerShape(4.dp)),
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Black,
                         disabledContainerColor = Color.DarkGray
                     ),
                     onClick = { /*TODO*/
-                                main_nav_ctrl.navigate(PatientViewScreens.CHAT_LOADER.name)
-                                /*var login_job = GlobalScope.launch{
+                        main_nav_ctrl.navigate(MainParams.PatientViewScreens.CHAT_LOADER.name)
+                        var login_job = GlobalScope.launch{
 
-                                    wslogin(active_speciality,global_session_id, main_hospital_man, this_ws_listener)
-                                }
-                                */
+                            wslogin(active_speciality,global_session_id, main_hospital_man, this_ws_listener)
+                        }
 
-
-                               // login_job.join()
-                               /*
-                                GlobalScope.launch {
-                                                        wsfindDoc(active_speciality,main_hospital_man)
-                                }
-                                */
-                              }
-                              ,
+                        // login_job.join()
+                        /*
+                         GlobalScope.launch {
+                                                 wsfindDoc(active_speciality,main_hospital_man)
+                         }
+                         */
+                    }
+                    ,
                     //modifier = Modifier.align(alignment = Alignment.End)
                 ) {
                     Icon(
@@ -1364,15 +904,15 @@ class PatientView : ComponentActivity() {
                     ) //add rounded corners to this column layout
                 )
                 .padding(10.dp),
-            //verticalArrangement = Arrangement.SpaceBetween
+                //verticalArrangement = Arrangement.SpaceBetween
             )
             {
                 ChatBoxes(chats,scroll_state) //chat messages view
 
-            //Box(modifier = Modifier.align(Alignment.BottomStart))
-            //{
+                //Box(modifier = Modifier.align(Alignment.BottomStart))
+                //{
                 MessageBox(chats,scroll_state) //send message view
-            //}
+                //}
 
             }
 
@@ -1385,9 +925,9 @@ class PatientView : ComponentActivity() {
             {
                 showDatePicker()
             }
-            
+
         }
-    
+
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -1397,7 +937,7 @@ class PatientView : ComponentActivity() {
     {
         val date_picker_state = rememberDatePickerState()
         val time_picker_state = rememberTimePickerState()
-        val is_time_picker = remember{mutableStateOf(false)}
+        val is_time_picker = remember{ mutableStateOf(false) }
 
         DatePickerDialog(
             /*
@@ -1408,47 +948,48 @@ class PatientView : ComponentActivity() {
                weekdayContentColor = Color.White
             ),*/
             onDismissRequest = {
-                    
+
             },
-            confirmButton = {TextButton(
-                                                    modifier = Modifier.background(Color.Blue),
-                                                    onClick = {
-                                                        if(is_time_picker.value == false)
-                                                        {
-                                                            var selected_date = date_picker_state.selectedDateMillis?.let{Instant.ofEpochMilli(it)}
-                                                            
-                                                            Toast.makeText(this_context,
-                                                                        "Selected Date: "+selected_date,
-                                                                        Toast.LENGTH_LONG).show()
-                                                            is_time_picker.value = true
-                                                        }
-                                                        else
-                                                        {
-                                                            var selected_time = time_picker_state.hour
-                                                            Toast.makeText(this_context,
-                                                                        " Selected Time: "+selected_time,
-                                                                        Toast.LENGTH_LONG).show()
-                                                        }
-                                        })
-                                        {
-                                            showText("Next")
-                                        }
-                            },
+            confirmButton = {
+                TextButton(
+                modifier = Modifier.background(Color.Blue),
+                onClick = {
+                    if(is_time_picker.value == false)
+                    {
+                        var selected_date = date_picker_state.selectedDateMillis?.let{ Instant.ofEpochMilli(it)}
+
+                        Toast.makeText(this_context,
+                            "Selected Date: "+selected_date,
+                            Toast.LENGTH_LONG).show()
+                        is_time_picker.value = true
+                    }
+                    else
+                    {
+                        var selected_time = time_picker_state.hour
+                        Toast.makeText(this_context,
+                            " Selected Time: "+selected_time,
+                            Toast.LENGTH_LONG).show()
+                    }
+                })
+            {
+                showText("Next")
+            }
+            },
             dismissButton = {
-                                TextButton(
-                                        modifier = Modifier.background(Color.Red),
-                                        onClick = {
-                                                    show_date_picker.value = false
-                                        })
-                                        {
-                                            
-                                            showText("Cancel")
-                                        }
+                TextButton(
+                    modifier = Modifier.background(Color.Red),
+                    onClick = {
+                        show_date_picker.value = false
+                    })
+                {
+
+                    showText("Cancel")
+                }
             })
         {
             if (is_time_picker.value==false) DatePicker(date_picker_state) else TimePicker(time_picker_state)
-            
-            
+
+
         }
     }
 
@@ -1456,7 +997,7 @@ class PatientView : ComponentActivity() {
     @Composable
     fun showTimePicker()
     {
-        
+
         val time_picker_state = rememberTimePickerState()
         Column()
         {
@@ -1475,37 +1016,37 @@ class PatientView : ComponentActivity() {
             .align(alignment = Alignment.TopEnd))
         {
             Button(
-                    onClick = {
-                        show_date_picker.value = true
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent,
-                                disabledContainerColor = Color.DarkGray
-                            ))
+                onClick = {
+                    show_date_picker.value = true
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.DarkGray
+                ))
             {
                 showText("Make appointment")
             }
 
             Button(
-                    onClick = {
-                                    main_nav_ctrl.navigate(PatientViewScreens.DASHBOARD.name)
-                              },
-                    colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent,
-                                disabledContainerColor = Color.DarkGray
-                            ))
+                onClick = {
+                    main_nav_ctrl.navigate(MainParams.PatientViewScreens.DASHBOARD.name)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.DarkGray
+                ))
             {
                 showText("Close Chat")
             }
 
             Button(
-                    onClick = {
-                                    startActivity(Intent(this_context,MainActivity::class.java))
-                              },
-                    colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent,
-                                disabledContainerColor = Color.DarkGray
-                            ))
+                onClick = {
+                    this_context.startActivity(Intent(this_context, MainActivity::class.java))
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.DarkGray
+                ))
             {
                 showText("Logout")
             }
@@ -1558,7 +1099,7 @@ class PatientView : ComponentActivity() {
     }
 
     @Composable
-    fun ColumnScope.ChatBox(chat_bmodel: ChatModel,chatter_type: Boolean)
+    fun ColumnScope.ChatBox(chat_bmodel: ChatModel, chatter_type: Boolean)
     {
         if(chatter_type == true)//check if useris patient
         {
@@ -1577,7 +1118,7 @@ class PatientView : ComponentActivity() {
         var chat_type = chat_model.msg_type
 
 
-        Box(modifier=Modifier.padding(10.dp))
+        Box(modifier= Modifier.padding(10.dp))
         {
             Column(
                 modifier = Modifier
@@ -1589,7 +1130,8 @@ class PatientView : ComponentActivity() {
 
             )
             {
-                Icon(Icons.Outlined.Face, contentDescription = "", tint = Color.White, modifier = Modifier
+                Icon(
+                    Icons.Outlined.Face, contentDescription = "", tint = Color.White, modifier = Modifier
                     .size(18.dp)
                     .padding(top = 1.dp, start = 8.dp, bottom = 3.dp)
                 )
@@ -1638,7 +1180,8 @@ class PatientView : ComponentActivity() {
 
             )
             {
-                Icon(Icons.Filled.Biotech, contentDescription = "", tint = Color.White, modifier = Modifier
+                Icon(
+                    Icons.Filled.Biotech, contentDescription = "", tint = Color.White, modifier = Modifier
                     .size(19.dp)
                     .padding(top = 3.dp, start = 8.dp)
                 )
@@ -1687,13 +1230,16 @@ class PatientView : ComponentActivity() {
 
             TextField(
                 //label = {Text("Message")},
-                placeholder = {Text("Message", style = TextStyle(
+                placeholder = {
+                    Text("Message", style = TextStyle(
                     fontSize = TextUnit(12f, TextUnitType.Sp),
                     fontStyle = FontStyle.Normal,
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Medium,
                     letterSpacing = TextUnit(2f, TextUnitType.Sp)
-                ))},
+                )
+                    )
+                },
                 value = message,
                 onValueChange = { message = it },
                 modifier = Modifier
@@ -1743,7 +1289,7 @@ class PatientView : ComponentActivity() {
                         //var dchat_model = ChatModel(message, false)
                         chats.add(chat_model)
                         //chats.add(dchat_model)
-                        
+
                         var xmsg = message
                         message = ""
 
@@ -1751,7 +1297,7 @@ class PatientView : ComponentActivity() {
                             wssendMsg(xmsg,main_hospital_man)
                         }
 
-                        
+
                         //}
                     }) {
                     Icon(
@@ -1770,7 +1316,7 @@ class PatientView : ComponentActivity() {
                     }, onClick = {
                         var file_picker = Intent(Intent.ACTION_OPEN_DOCUMENT)
 
-                        startActivityForResult(file_picker,1900)
+                        //this_context.startActivityForResult(file_picker,1900)
 
                     }) {
                     Icon(
@@ -1798,12 +1344,12 @@ class PatientView : ComponentActivity() {
                 Text(
                     "Hello\n$this_patient_name", //greeting text
                     style = TextStyle(
-                        color=Color.White, //set font color to white
+                        color= Color.White, //set font color to white
                         fontSize = TextUnit(13f, TextUnitType.Sp), //set size of the font to 13
                         fontWeight = FontWeight.Light, //use light font
                         fontStyle = FontStyle.Normal, //use normal font style
                         fontFamily = FontFamily.Monospace, //use monospace font family
-                        letterSpacing = TextUnit(1f,TextUnitType.Sp), //space between letters
+                        letterSpacing = TextUnit(1f, TextUnitType.Sp), //space between letters
 
                     ), //change text style of the greeting text
                     modifier = Modifier.padding(5.dp) //space between top app bar components
@@ -1815,8 +1361,8 @@ class PatientView : ComponentActivity() {
                     Icon(
                         Icons.Outlined.Face,
                         contentDescription = "Patient",
-                        tint=Color.White,
-                        modifier=Modifier.padding(top=5.dp)
+                        tint= Color.White,
+                        modifier= Modifier.padding(top=5.dp)
                     ) //icon at the beginning of the top app bar
                 }
                 else
@@ -1824,8 +1370,8 @@ class PatientView : ComponentActivity() {
                     Icon(
                         Icons.Filled.AccountCircle,
                         contentDescription = "Patient",
-                        tint=Color.White,
-                        modifier=Modifier.padding(top=5.dp)
+                        tint= Color.White,
+                        modifier= Modifier.padding(top=5.dp)
                     ) //icon at the beginning of the top app bar
                 }
 
@@ -1852,11 +1398,14 @@ class PatientView : ComponentActivity() {
                     )
                 ) //delete icon button to clear the chat area
                 {
-                    Icon(Icons.TwoTone.DeleteOutline, contentDescription = "Go back",tint=Color.White)//, modifier = Modifier.size(5.dp))
+                    Icon(Icons.TwoTone.DeleteOutline, contentDescription = "Go back",tint= Color.White)//, modifier = Modifier.size(5.dp))
 
                 }
                 /**
-                    Side menu icon
+                Side menu icon
+                 */
+                /**
+                Side menu icon
                  */
 
                 IconButton(onClick = {
@@ -1871,7 +1420,7 @@ class PatientView : ComponentActivity() {
 
                     )
                 {
-                    Icon(Icons.Rounded.Menu, contentDescription = "side menu",tint=Color.White)
+                    Icon(Icons.Rounded.Menu, contentDescription = "side menu",tint= Color.White)
 
                 }
 

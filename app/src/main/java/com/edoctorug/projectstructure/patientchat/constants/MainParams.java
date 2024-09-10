@@ -31,5 +31,14 @@ public interface MainParams
         SPECIALITY,
         CHAT,
         CHAT_LOADER,
+        APPOINTMENTS,
+
+        DIAGNOSES,
+
+        PRESCRIPTIONS,
+
+        ORDERS,
+
+        RECORDS,
     }
 }
