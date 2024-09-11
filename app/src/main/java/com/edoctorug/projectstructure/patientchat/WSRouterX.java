@@ -93,7 +93,7 @@ public class WSRouterX extends WSRouter
     public void authHandler(ResponseModel responseModel)
     {
         super.authHandler(responseModel);
-        results_string.setValue(responseModel.status_msg);
+        //results_string.setValue(responseModel.status_msg);
 
     }
 

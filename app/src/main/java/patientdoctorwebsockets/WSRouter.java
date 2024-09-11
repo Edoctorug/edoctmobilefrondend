@@ -148,7 +148,7 @@ public class WSRouter
                 found_online_doc.set(true);
                 msgHandler(response_model);
                 System.out.println("\t\t From message: "+status_msg);
-
+            break;
             case "appointments":
                 found_online_doc.set(true);
                 appointmentsHandler(response_model);

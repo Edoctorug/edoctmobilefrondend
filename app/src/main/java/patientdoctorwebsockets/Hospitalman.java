@@ -333,7 +333,7 @@ public class Hospitalman
         wsChatDataModel.message = "prescribe_drug";
         wsChatDataModel.meta =(WSMedicineModel) ws_medicine_model;
         String ws_chat_data_model = wsChatDataModel.toJson();
-
+        Log.i("PRESCRIPTION DATA: ", ws_chat_data_model);
         hospital_Client.wsSend(ws_chat_data_model);
     }
 
@@ -355,7 +355,7 @@ public class Hospitalman
         wsChatDataModel.chat_uuid = chat_uuid;
         wsChatDataModel.meta =(WSMedicineModel) ws_medicine_model;
         String ws_chat_data_model = wsChatDataModel.toJson();
-
+        Log.i("PRESCRIPTION DATA: ", ws_chat_data_model);
         hospital_Client.wsSend(ws_chat_data_model);
     }
 
@@ -428,6 +428,29 @@ public class Hospitalman
         hospital_Client.wsSend(ws_chat_data_model);
     }
 
+    public void makeLabTest(String chat_uuid,String test_name,String test_personel)
+    {
+
+        System.out.println("Appointment: "+test_name+" appointment time: "+test_personel);
+
+        WSLabTestModel ws_labtest_model = new WSLabTestModel();
+        ws_labtest_model.test_name = test_name;
+        ws_labtest_model.test_personel = test_personel;
+
+
+        String str_lab_test_model = ws_labtest_model.toJson();
+
+
+        WSChatMsgModel wsChatDataModel = new WSChatMsgModel();
+        wsChatDataModel.cmd = "labtest";
+        wsChatDataModel.message = "Lab Test";
+        wsChatDataModel.chat_uuid = chat_uuid;
+        wsChatDataModel.meta =(WSLabTestModel) ws_labtest_model;
+        String ws_chat_data_model = wsChatDataModel.toJson();
+
+        hospital_Client.wsSend(ws_chat_data_model);
+    }
+
 
     public void orderItem(String med_name,Integer med_quantity, String pharma_id)
     {
@@ -442,6 +465,26 @@ public class Hospitalman
         WSChatMsgModel wsChatDataModel = new WSChatMsgModel();
         wsChatDataModel.cmd = "order_item";
         wsChatDataModel.message = "Creating Order....";
+        wsChatDataModel.meta =(WSOrderModel) ws_order_model;
+        String ws_chat_data_model = wsChatDataModel.toJson();
+
+        hospital_Client.wsSend(ws_chat_data_model);
+    }
+
+    public void orderItem(String chat_uuid,String med_name,Integer med_quantity, String pharma_id)
+    {
+
+
+
+        WSOrderModel ws_order_model = new WSOrderModel(med_name,med_quantity,pharma_id);
+
+        String str_order_model = ws_order_model.toJson();
+
+
+        WSChatMsgModel wsChatDataModel = new WSChatMsgModel();
+        wsChatDataModel.cmd = "order_item";
+        wsChatDataModel.message = "Creating Order....";
+        wsChatDataModel.chat_uuid = chat_uuid;
         wsChatDataModel.meta =(WSOrderModel) ws_order_model;
         String ws_chat_data_model = wsChatDataModel.toJson();
 

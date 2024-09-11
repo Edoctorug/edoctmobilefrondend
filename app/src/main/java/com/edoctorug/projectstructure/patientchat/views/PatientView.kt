@@ -125,6 +125,7 @@ import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.RectangleShape
@@ -142,6 +143,7 @@ import patientdoctorwebsockets.Models.DiagnosisDetails
 import patientdoctorwebsockets.Models.OrderDetails
 import patientdoctorwebsockets.Models.PrescriptionDetails
 import patientdoctorwebsockets.Models.RecordDetails
+import java.time.LocalTime
 
 class PatientView : ComponentActivity() {
 
@@ -315,7 +317,7 @@ class PatientView : ComponentActivity() {
     suspend fun wslogin(this_speciality: String,session_id: String, zhospital_man: Hospitalman, zwsmancb: WSmanCB)
     {
         var auth_bool = zhospital_man.authWebSocket(zwsmancb,session_id)
-        var auth_bool2 = zhospital_man.findOnlineDoc(this_speciality)
+        ///var auth_bool2 = zhospital_man.findOnlineDoc(this_speciality)
 
     }
 
@@ -661,6 +663,9 @@ class PatientView : ComponentActivity() {
                         //global_enabled = this_enabled
                         this_enabled.value = !this_enabled.value
                         last_enabled = this_enabled
+                        GlobalScope.launch{
+                            main_hospital_man.getAppointments()
+                        }
                         /*var appointments_activity = Intent(this_context, AppointmentsComposable::class.java) //intent to the Chat user interface
 
                         appointments_activity.putExtra("user_names",this_patient_name) //add user's name extra to the chat intent for it to be displayed with the chat data
@@ -734,7 +739,9 @@ class PatientView : ComponentActivity() {
                         //global_enabled = this_enabled
                         this_enabled.value = !this_enabled.value
                         last_enabled = this_enabled
-
+                        GlobalScope.launch{
+                            main_hospital_man.getDiagnoses()
+                        }
                         main_nav_ctrl.navigate(PatientViewScreens.DIAGNOSES.name)
                     },
                     enabled = (this_enabled.value),
@@ -800,7 +807,9 @@ class PatientView : ComponentActivity() {
                         //global_enabled = this_enabled
                         this_enabled.value = !this_enabled.value
                         last_enabled = this_enabled
-
+                        GlobalScope.launch{
+                            main_hospital_man.getPrescriptions()
+                        }
                         main_nav_ctrl.navigate(PatientViewScreens.PRESCRIPTIONS.name)
                     },
                     enabled = (this_enabled.value),
@@ -866,7 +875,9 @@ class PatientView : ComponentActivity() {
                         //global_enabled = this_enabled
                         this_enabled.value = !this_enabled.value
                         last_enabled = this_enabled
-
+                        GlobalScope.launch{
+                            main_hospital_man.getOrders()
+                        }
                         main_nav_ctrl.navigate(PatientViewScreens.ORDERS.name)
                     },
                     enabled = (this_enabled.value),
@@ -932,7 +943,9 @@ class PatientView : ComponentActivity() {
                         //global_enabled = this_enabled
                         this_enabled.value = !this_enabled.value
                         last_enabled = this_enabled
-
+                        GlobalScope.launch{
+                            main_hospital_man.getRecords()
+                        }
                         main_nav_ctrl.navigate(PatientViewScreens.RECORDS.name)
                     },
                     enabled = (this_enabled.value),
@@ -1139,7 +1152,7 @@ class PatientView : ComponentActivity() {
 
                 showText(text = result_msg.value)
             }
-            else if((chat_loading_fin.value!=true) && (result_msg.value=="")){
+            else if((chat_loading_fin.value==true) && (result_msg.value=="")){
                 showText(text = "Ooops, \uD83D\uDE36\u200D\uD83C\uDF2B\uFE0F")
                 Icon(imageVector = Icons.Sharp.DoNotDisturb,
                     contentDescription = "no doctor",
@@ -1277,19 +1290,23 @@ class PatientView : ComponentActivity() {
                     ),
                     onClick = { /*TODO*/
                                 main_nav_ctrl.navigate(PatientViewScreens.CHAT_LOADER.name)
-                                /*var login_job = GlobalScope.launch{
+                                var login_job = GlobalScope.launch{
 
-                                    wslogin(active_speciality,global_session_id, main_hospital_man, this_ws_listener)
+                                    //wslogin(active_speciality,global_session_id, main_hospital_man, this_ws_listener)
+
+                                    wsfindDoc(active_speciality,main_hospital_man)
                                 }
-                                */
 
 
-                               // login_job.join()
-                               /*
-                                GlobalScope.launch {
+
+                                //login_job.join()
+
+                                /*GlobalScope.launch {
                                                         wsfindDoc(active_speciality,main_hospital_man)
                                 }
-                                */
+
+                                 */
+
                               }
                               ,
                     //modifier = Modifier.align(alignment = Alignment.End)
@@ -1331,61 +1348,71 @@ class PatientView : ComponentActivity() {
     @Composable
     fun ChatUI(chats: MutableList<ChatModel>, scroll_state: ScrollState) //layout container to hold the chat components
     {
+        Scaffold(topBar={InAppBar(chats)})
+        { innerPadding->Surface(color= Color(
+            2, //transparency
+            26, //red value
+            150, //green value
+            255 //blue value
+        ), modifier = Modifier.padding(innerPadding))
+          {
 
-        Box()
-        {
-            Column(modifier = Modifier // column layout for the chat messages and send message box
-                .padding(10.dp) //space between the components
-                .fillMaxWidth() //this layout fills all the available width
-                .fillMaxHeight() //this layout fills all the available height
-                .background(//set background color of the column view as a linear gradient of colors
-                    Brush.linearGradient(
-                        listOf(
-                            Color.Black,
-                            //Color(70, 195, 248, 255),
-                            Color(1, 2, 75, 255),
-                            //Color(40, 83, 168, 255),
-                            //Color(173, 213, 241, 255),
-                            Color(25, 27, 182, 255),
-                            Color(55, 87, 170, 255),
-                            // Color(255, 255, 255),
-                            //Color(255, 255, 255, 176),
-                            Color.Black
-                        ),
-                        Offset.Zero,
-                        Offset.Infinite,
-                        TileMode.Repeated
-                    ),
-                    shape = RoundedCornerShape(
-                        20.dp,
-                        20.dp,
-                        20.dp,
-                        20.dp
-                    ) //add rounded corners to this column layout
+            Box()
+            {
+                Column(
+                    modifier = Modifier // column layout for the chat messages and send message box
+                        .padding(10.dp) //space between the components
+                        .fillMaxWidth() //this layout fills all the available width
+                        .fillMaxHeight() //this layout fills all the available height
+                        .background(//set background color of the column view as a linear gradient of colors
+                            Brush.linearGradient(
+                                listOf(
+                                    Color.Black,
+                                    //Color(70, 195, 248, 255),
+                                    Color(1, 2, 75, 255),
+                                    //Color(40, 83, 168, 255),
+                                    //Color(173, 213, 241, 255),
+                                    Color(25, 27, 182, 255),
+                                    Color(55, 87, 170, 255),
+                                    // Color(255, 255, 255),
+                                    //Color(255, 255, 255, 176),
+                                    Color.Black
+                                ),
+                                Offset.Zero,
+                                Offset.Infinite,
+                                TileMode.Repeated
+                            ),
+                            shape = RoundedCornerShape(
+                                20.dp,
+                                20.dp,
+                                20.dp,
+                                20.dp
+                            ) //add rounded corners to this column layout
+                        )
+                        .padding(10.dp),
+                    //verticalArrangement = Arrangement.SpaceBetween
                 )
-                .padding(10.dp),
-            //verticalArrangement = Arrangement.SpaceBetween
-            )
-            {
-                ChatBoxes(chats,scroll_state) //chat messages view
+                {
+                    ChatBoxes(chats, scroll_state) //chat messages view
 
-            //Box(modifier = Modifier.align(Alignment.BottomStart))
-            //{
-                MessageBox(chats,scroll_state) //send message view
-            //}
+                    //Box(modifier = Modifier.align(Alignment.BottomStart))
+                    //{
+                    MessageBox(chats, scroll_state) //send message view
+                    //}
+
+                }
+
+                if (show_side_menu.value == true) {
+                    sideMenu()
+                }
+
+                if (show_date_picker.value == true) {
+                    showDatePicker()
+                }
 
             }
+          }
 
-            if(show_side_menu.value == true)
-            {
-                sideMenu()
-            }
-
-            if(show_date_picker.value == true)
-            {
-                showDatePicker()
-            }
-            
         }
     
     }
@@ -1398,7 +1425,7 @@ class PatientView : ComponentActivity() {
         val date_picker_state = rememberDatePickerState()
         val time_picker_state = rememberTimePickerState()
         val is_time_picker = remember{mutableStateOf(false)}
-
+        var selected_date: Long = 0
         DatePickerDialog(
             /*
             colors = DatePickerDefaults.colors(
@@ -1415,8 +1442,14 @@ class PatientView : ComponentActivity() {
                                                     onClick = {
                                                         if(is_time_picker.value == false)
                                                         {
-                                                            var selected_date = date_picker_state.selectedDateMillis?.let{Instant.ofEpochMilli(it)}
-                                                            
+
+                                                            var xselected_date = date_picker_state.selectedDateMillis//?.let{Instant.ofEpochMilli(it)}
+                                                            if(xselected_date==null){
+                                                                selected_date = 0
+                                                            }
+                                                            else{
+                                                                selected_date = xselected_date
+                                                            }
                                                             Toast.makeText(this_context,
                                                                         "Selected Date: "+selected_date,
                                                                         Toast.LENGTH_LONG).show()
@@ -1424,10 +1457,14 @@ class PatientView : ComponentActivity() {
                                                         }
                                                         else
                                                         {
-                                                            var selected_time = time_picker_state.hour
+                                                            var selected_time = time_picker_state.hour/1000
+                                                            var selected_min = time_picker_state.minute
                                                             Toast.makeText(this_context,
                                                                         " Selected Time: "+selected_time,
                                                                         Toast.LENGTH_LONG).show()
+
+
+                                                            main_hospital_man.makeAppointment(chat_details.chat_uuid,"",selected_date,LocalTime.of(selected_time,selected_min))
                                                         }
                                         })
                                         {

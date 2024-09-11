@@ -465,23 +465,23 @@ class DoctorChatView(private var prev_nav_ctrl: NavHostController,private var ch
     
     suspend fun wsPrescibe(med_name: String,med_dose: String, zhospital_man: Hospitalman)
     {
-        var auth_bool = zhospital_man.makePrescription(med_name,med_dose)
+        var auth_bool = zhospital_man.makePrescription(chat_details.chat_uuid,med_name,med_dose)
     }
 
     suspend fun wsSaveRecord(record_title: String,record_details: String, zhospital_man: Hospitalman)
     {
-        var auth_bool = zhospital_man.saveRecord(record_title,record_details)
+        var auth_bool = zhospital_man.saveRecord(chat_details.chat_uuid,record_title,record_details)
     }
 
 
     suspend fun wsLabTest(test_name: String,test_personel: String, zhospital_man: Hospitalman)
     {
-        var auth_bool = zhospital_man.makeLabTest(test_name,test_personel)
+        var auth_bool = zhospital_man.makeLabTest(chat_details.chat_uuid,test_name,test_personel)
     }
 
     suspend fun wsOrderItem(item_name: String,item_quantity: Int, pharma_id: String ,zhospital_man: Hospitalman)
     {
-        var auth_bool = zhospital_man.orderItem(item_name,item_quantity, pharma_id)
+        var auth_bool = zhospital_man.orderItem(chat_details.chat_uuid,item_name,item_quantity, pharma_id)
     }
     /**
     *function that prepares the doctor to wait for any available patient
@@ -1305,7 +1305,7 @@ class DoctorChatView(private var prev_nav_ctrl: NavHostController,private var ch
         Column(modifier = Modifier.background(color = Color(0xff040f41)).align(alignment = Alignment.TopEnd))
         {
             /**
-            *Prescribe medicine button
+            *Order Lab Test button
             */
             Button(
                     onClick = {
