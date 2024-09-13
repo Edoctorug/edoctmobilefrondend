@@ -13,6 +13,8 @@ package com.edoctorug.projectstructure.patientchat
  * @param stat patient status true for patient , false for doctor
  * @param amsg_type type of message
  */
+//public var MEDIA_MSG :Int = 1998 //code for a message with media
+//public var TEXT_MSG :Int = 1999 //code for a message with text
 class ChatModel(msg: String,stat: Boolean, amsg_type: Int = 1999) //
 {
 

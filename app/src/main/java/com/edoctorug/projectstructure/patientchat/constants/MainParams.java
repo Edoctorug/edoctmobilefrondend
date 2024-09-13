@@ -28,6 +28,10 @@ public interface MainParams
 
     public enum PatientViewScreens{
         DASHBOARD,
+
+        CHATS,
+        FOCUS,
+        LABTESTS,
         SPECIALITY,
         CHAT,
         CHAT_LOADER,

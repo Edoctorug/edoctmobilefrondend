@@ -225,6 +225,19 @@ public class Hospitalman
         hospital_Client.wsSend(ws_chat_data_model_str);
     }
 
+    public void getLabTests()
+    {
+        WSChatDataModel ws_chat_data_model = new WSChatDataModel(); //create chat model
+        ws_chat_data_model.cmd = "get_labtests"; //use the get_online command
+        ws_chat_data_model.message = "consultant"; //dummy message
+
+        String ws_chat_data_model_str = ws_chat_data_model.toJson(); //convert the model to json string
+
+        ////System.out.println(" sending find: "+ ws_chat_data_model_str);
+
+        hospital_Client.wsSend(ws_chat_data_model_str);
+    }
+
     public void getOrders()
     {
         WSChatDataModel ws_chat_data_model = new WSChatDataModel(); //create chat model

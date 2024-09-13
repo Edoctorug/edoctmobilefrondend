@@ -392,6 +392,7 @@ class DoctorComposables(): WSRouter()
                 var tmp_active_uuid = backStackEntry.arguments?.getString("chat_id")
                 var active_uuid = if (tmp_active_uuid!=null) tmp_active_uuid else "CHAT ERROR"
                 var tmp_chat = mutable_chat_map[active_uuid]
+
                 var current_chat = if( tmp_chat !=null) tmp_chat else null //temporarily store the names in the chat
                                         if(current_chat!=null)
                                         {
@@ -477,6 +478,7 @@ class DoctorComposables(): WSRouter()
                                             var chat_names = chat_details.full_names
                                             var chat_date = chat_details.chat_time
                                             MainComposables().ChatSummary(chat_names,chat_date,{
+                                                active_chat_details = chat_details
                                                 home_nav_ctrl.navigate(DoctorViewScreens.FOCUS.name+ "/patient/" + item)
                                             })
                                         }

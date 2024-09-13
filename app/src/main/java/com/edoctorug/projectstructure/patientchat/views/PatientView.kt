@@ -107,6 +107,7 @@ import android.util.Log
 import android.view.RoundedCorner
 import androidx.annotation.RequiresApi
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material.icons.rounded.Deck
 import androidx.compose.material.icons.sharp.DoNotDisturb
@@ -129,17 +130,27 @@ import androidx.compose.material3.TimePickerState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.RectangleShape
+import com.edoctorug.projectstructure.patientchat.ChatSummaryModel
 import com.edoctorug.projectstructure.patientchat.HospitalManSingleton
 import com.edoctorug.projectstructure.patientchat.composables.AppointmentsComposable
 import com.edoctorug.projectstructure.patientchat.composables.DiagnosesComposable
+import com.edoctorug.projectstructure.patientchat.composables.DoctorChatView
+import com.edoctorug.projectstructure.patientchat.composables.LabTestsComposable
+import com.edoctorug.projectstructure.patientchat.composables.MainComposables
 import com.edoctorug.projectstructure.patientchat.composables.OrdersComposable
 import com.edoctorug.projectstructure.patientchat.composables.PrescriptionsComposable
 import com.edoctorug.projectstructure.patientchat.composables.RecordsComposable
 import com.edoctorug.projectstructure.patientchat.constants.ConnectionParams
+import com.edoctorug.projectstructure.patientchat.constants.MainParams
 import com.edoctorug.projectstructure.patientchat.constants.MainParams.PatientViewScreens
+import com.edoctorug.projectstructure.patientchat.models.ChatCase
+import com.edoctorug.projectstructure.patientchat.models.XChatCase
+import kotlinx.coroutines.CoroutineScope
 import patientdoctorwebsockets.Models.AppointmentDetails
 import patientdoctorwebsockets.Models.ChatDetails
+import patientdoctorwebsockets.Models.ChatsHistory
 import patientdoctorwebsockets.Models.DiagnosisDetails
+import patientdoctorwebsockets.Models.LabTestDetails
 import patientdoctorwebsockets.Models.OrderDetails
 import patientdoctorwebsockets.Models.PrescriptionDetails
 import patientdoctorwebsockets.Models.RecordDetails
@@ -183,11 +194,13 @@ class PatientView : ComponentActivity() {
 
     lateinit var prescriptions_composable: PrescriptionsComposable
     lateinit var diagnoses_composable: DiagnosesComposable
+    lateinit var labtests_composable: LabTestsComposable
 
     lateinit var records_composable: RecordsComposable
     lateinit var orders_composable: OrdersComposable
 
     var global_session_id: String  = ""
+    lateinit var is_global_loading: MutableState<Boolean>
     //var user_role: String? = ""
     //var user_names = ""
     var active_speciality: String = "" //doctor field the user wants to chat with
@@ -196,6 +209,10 @@ class PatientView : ComponentActivity() {
     lateinit var mutable_diagnoses_map: SnapshotStateMap<String, DiagnosisDetails>
     lateinit var mutable_prescriptions_map: SnapshotStateMap<String, PrescriptionDetails>
     lateinit var mutable_orders_map: SnapshotStateMap<String, OrderDetails>
+    lateinit var mutable_chat_map: SnapshotStateMap<String, ChatDetails>
+    lateinit var mutable_labtests_map: SnapshotStateMap<String, LabTestDetails>
+    //lateinit var mutable_chats_map: SnapshotStateMap<String, MutableList<ChatModel>>
+    lateinit var mutable_chats_map: SnapshotStateMap<String, XChatCase>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         var user_names: String? = intent.getStringExtra("user_names")
@@ -225,6 +242,7 @@ class PatientView : ComponentActivity() {
 
         GlobalScope.launch {
             wslogin(active_speciality,global_session_id, main_hospital_man, this_ws_listener)
+
         }
 
         setContent{
@@ -232,7 +250,7 @@ class PatientView : ComponentActivity() {
             chats = remember{ mutableStateListOf<ChatModel>() }
             result_msg = remember { mutableStateOf("") }
             chat_loading_fin = remember {mutableStateOf(false)}
-
+            is_global_loading = remember { mutableStateOf(false) }
             appointments_holder =  remember {
                 mutableStateMapOf()
             }
@@ -241,8 +259,10 @@ class PatientView : ComponentActivity() {
             mutable_diagnoses_map = remember {mutableStateMapOf()}
             mutable_prescriptions_map = remember {mutableStateMapOf()}
             mutable_orders_map = remember {mutableStateMapOf()}
+            mutable_chats_map = remember {mutableStateMapOf()}
+            mutable_labtests_map = remember { mutableStateMapOf() }
             //chat_loading_fin = remember {mutableStateOf(false)}
-
+            mutable_chat_map = remember {mutableStateMapOf()}
             show_date_picker = remember {mutableStateOf(false)}
 
             show_side_menu = remember {mutableStateOf(false)}
@@ -271,6 +291,7 @@ class PatientView : ComponentActivity() {
 
 
         }
+
 
 
     }
@@ -363,16 +384,17 @@ class PatientView : ComponentActivity() {
         //mutable list of current chat objects
         var scroll_state = rememberScrollState() //get a sctate of the scroll
         main_nav_ctrl = rememberNavController()
-        active_wsrouterx = WSRouterX(chats,result_msg,chat_loading_fin)
+        active_wsrouterx = WSRouterX(chats,result_msg,chat_loading_fin,is_global_loading)
         this_ws_listener.setActiveRouter(active_wsrouterx)
 
-        active_wsrouterx.setDataHolders(appointments_holder,mutable_prescriptions_map,mutable_orders_map,mutable_records_map,mutable_diagnoses_map)
+        active_wsrouterx.setDataHolders(appointments_holder,mutable_prescriptions_map,mutable_orders_map,mutable_records_map,mutable_diagnoses_map,mutable_labtests_map,mutable_chats_map)
 
 
 
         appointments_composable = AppointmentsComposable("patient",main_nav_ctrl,appointments_holder)
         records_composable = RecordsComposable("patient",main_nav_ctrl,mutable_records_map)
         diagnoses_composable = DiagnosesComposable("patient",main_nav_ctrl,mutable_diagnoses_map)
+        labtests_composable = LabTestsComposable("patient",main_nav_ctrl,mutable_labtests_map)
         prescriptions_composable = PrescriptionsComposable("patient",main_nav_ctrl,mutable_prescriptions_map)
         orders_composable = OrdersComposable("patient",main_nav_ctrl,mutable_orders_map)
 
@@ -382,6 +404,12 @@ class PatientView : ComponentActivity() {
             // init_bool = !init_bool
         }
         */
+        LaunchedEffect(Unit)
+        {
+            GlobalScope.launch {
+                main_hospital_man.getChatHistory();
+            }
+        }
 
 
         Scaffold (
@@ -464,6 +492,46 @@ class PatientView : ComponentActivity() {
                 }
             }
 
+            composable(PatientViewScreens.CHATS.name)
+            {
+                Box(modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth())
+                {
+                    ChatsHistory()
+                }
+            }
+
+            composable(PatientViewScreens.FOCUS.name+"/patient/{chat_uuid}")
+            {backStackEntry->
+                Box(modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth())
+                {
+                    Log.i("CHAT_HISTORY_STATUS","LOADED CHAT HISTORY")
+                    //ChatsHistory()
+                    var tmp_active_uuid = backStackEntry.arguments?.getString("chat_uuid")
+                    var active_uuid = if (tmp_active_uuid!=null) tmp_active_uuid else "CHAT ERROR"
+                    Log.i("CHAT_HISTORY_UUID",active_uuid)
+                    var tmp_chat = mutable_chats_map[active_uuid]
+                    var current_chat = if( tmp_chat !=null) tmp_chat else null //temporarily store the names in the chat
+                    if(current_chat!=null)
+                    {
+                        Log.i("CHAT_HISTORY_STATUS","DISPLAYED CHAT HISTORY")
+                        var doc_names = current_chat.getChatOwner()
+
+                        //DoctorChatView(ChatCase(doc_names,chat_details,remember{ mutableStateListOf<ChatModel>()}))
+                        var pchat_models: List<ChatModel> = current_chat.getChatList().toList();
+                        var pchat_models_len: Int = pchat_models.size
+
+                        ChatUI(chats = current_chat.getChatList(), scroll_state = scroll_state)
+                    }
+                    else{
+                        Log.i("CHAT_HISTORY_STATUS","NULL DISPLAY CHAT HISTORY")
+                    }
+                }
+            }
+
             composable(PatientViewScreens.APPOINTMENTS.name)
             {
                 Box(modifier = Modifier
@@ -494,6 +562,15 @@ class PatientView : ComponentActivity() {
                 }
             }
 
+            composable(PatientViewScreens.LABTESTS.name)
+            {
+                Box(modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth())
+                {
+                    labtests_composable.Home()
+                }
+            }
             composable(PatientViewScreens.RECORDS.name)
             {
                 Box(modifier = Modifier
@@ -583,6 +660,75 @@ class PatientView : ComponentActivity() {
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             userScrollEnabled = true)
         {
+
+            /**
+             * RecentChats Button
+             */
+            item {
+
+                var this_enabled = remember{ mutableStateOf(true) }
+
+
+                Button(
+                    onClick = { /*TODO*/
+                        global_enabled.value = !global_enabled.value
+                        this_enabled.value = !this_enabled.value
+                        last_enabled = this_enabled
+
+                        main_nav_ctrl.navigate(PatientViewScreens.CHATS.name)
+                    },
+                    enabled = (this_enabled.value),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Black,
+                        disabledContainerColor = Color.DarkGray
+                    ),
+
+                    shape = RoundedCornerShape(4.dp)
+                )
+                {
+                    ConstraintLayout(modifier = Modifier.background(
+                        Color.Transparent,
+
+                        // (2, //transparency 26, //red value 150, //green value 255 //blue value),
+                    )) {
+                        val (icon_ref, text_ref) = createRefs()
+
+                        Icon(   Icons.Filled.Biotech,
+                            contentDescription = "Click Here To Get Recent Chats",
+                            tint= Color.White,
+                            modifier = Modifier.constrainAs(icon_ref)
+                            {
+                                top.linkTo(parent.top, margin = 0.dp)
+                            }
+                        )
+
+                        Text( //Registration Box Heading
+                            text = "Recent Chats",
+                            modifier = Modifier
+                                //.padding(10.dp)
+                                .constrainAs(text_ref)
+                                {
+                                    absoluteLeft.linkTo(icon_ref.absoluteLeft, margin = 20.dp)
+                                }
+                            //  .align(alignment = Alignment.CenterHorizontally)
+                            , style = TextStyle(
+                                fontSize = TextUnit(10f, TextUnitType.Sp),
+                                fontStyle = FontStyle.Normal,
+                                color = Color.White,
+                                fontFamily = FontFamily.Monospace,
+                                letterSpacing = TextUnit(
+                                    integerResource(id = R.integer.text_spacing_default).toFloat(),
+                                    TextUnitType.Sp
+                                )
+                            )//Label for this layout
+                        )
+                    }
+
+
+
+                }
+            }
+
             /**
              * Visit doctor Button
              */
@@ -728,7 +874,7 @@ class PatientView : ComponentActivity() {
             }
 
             /**
-             * Get Diagnoses Button
+             * Get LabTests Button
              */
             item {
 
@@ -740,9 +886,10 @@ class PatientView : ComponentActivity() {
                         this_enabled.value = !this_enabled.value
                         last_enabled = this_enabled
                         GlobalScope.launch{
-                            main_hospital_man.getDiagnoses()
+                            //main_hospital_man.getDiagnoses()
+                            main_hospital_man.getLabTests();
                         }
-                        main_nav_ctrl.navigate(PatientViewScreens.DIAGNOSES.name)
+                        main_nav_ctrl.navigate(PatientViewScreens.LABTESTS.name)
                     },
                     enabled = (this_enabled.value),
                     colors = ButtonDefaults.buttonColors(
@@ -760,7 +907,7 @@ class PatientView : ComponentActivity() {
                         val (icon_ref, text_ref) = createRefs()
 
                         Icon(   Icons.Filled.CalendarMonth,
-                            contentDescription = "Diagnoses",
+                            contentDescription = "LabTests",
                             tint= Color.White,
                             modifier = Modifier.constrainAs(icon_ref)
                             {
@@ -768,8 +915,8 @@ class PatientView : ComponentActivity() {
                             }
                         )
 
-                        Text( //Diagnoses Heading
-                            text = "Diagnoses",
+                        Text( //Lab Tests Heading
+                            text = "LabTest",
                             modifier = Modifier
                                 //.padding(10.dp)
                                 .constrainAs(text_ref)
@@ -1424,7 +1571,9 @@ class PatientView : ComponentActivity() {
     {
         val date_picker_state = rememberDatePickerState()
         val time_picker_state = rememberTimePickerState()
+        
         val is_time_picker = remember{mutableStateOf(false)}
+        
         var selected_date: Long = 0
         DatePickerDialog(
             /*
@@ -1448,7 +1597,7 @@ class PatientView : ComponentActivity() {
                                                                 selected_date = 0
                                                             }
                                                             else{
-                                                                selected_date = xselected_date
+                                                                selected_date = xselected_date/1000
                                                             }
                                                             Toast.makeText(this_context,
                                                                         "Selected Date: "+selected_date,
@@ -1457,18 +1606,35 @@ class PatientView : ComponentActivity() {
                                                         }
                                                         else
                                                         {
-                                                            var selected_time = time_picker_state.hour/1000
+                                                            var selected_time = time_picker_state.hour
                                                             var selected_min = time_picker_state.minute
                                                             Toast.makeText(this_context,
                                                                         " Selected Time: "+selected_time,
                                                                         Toast.LENGTH_LONG).show()
 
+                                                                is_global_loading.value = true
+                                                                GlobalScope.launch {
+                                                                    main_hospital_man.makeAppointment(chat_details.chat_uuid,"",selected_date,LocalTime.of(selected_time,selected_min))
+                                                                }
+                                                            
+                                                            
 
-                                                            main_hospital_man.makeAppointment(chat_details.chat_uuid,"",selected_date,LocalTime.of(selected_time,selected_min))
                                                         }
                                         })
                                         {
-                                            showText("Next")
+                                            if((is_time_picker.value == false)&&(is_global_loading.value == false)) {
+                                                showText("Next")
+                                            }
+                                            else if((is_time_picker.value == true)&&(is_global_loading.value == false)){
+                                                showText("Book")
+                                            }
+                                            else if((is_time_picker.value == true)&&(is_global_loading.value == true)){
+                                                MainComposables().showLoading()
+                                            }
+                                            else{
+                                                show_date_picker.value = false
+                                                showText(text = "OKAY")
+                                            }
                                         }
                             },
             dismissButton = {
@@ -1513,6 +1679,7 @@ class PatientView : ComponentActivity() {
         {
             Button(
                     onClick = {
+                        show_side_menu.value = false
                         show_date_picker.value = true
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -1525,6 +1692,7 @@ class PatientView : ComponentActivity() {
 
             Button(
                     onClick = {
+                                    show_side_menu.value = false
                                     main_nav_ctrl.navigate(PatientViewScreens.DASHBOARD.name)
                               },
                     colors = ButtonDefaults.buttonColors(
@@ -1618,7 +1786,7 @@ class PatientView : ComponentActivity() {
         {
             Column(
                 modifier = Modifier
-                    .background(Color(0xff0b2db4), shape = RoundedCornerShape(10.dp))
+                    .background(Color(0xFF021664), shape = RoundedCornerShape(10.dp))
                     //.border(1.dp, Color.Black, shape = RoundedCornerShape(20.dp))
                     .padding(top = 10.dp)
                 //.width(150.dp)
@@ -1675,10 +1843,18 @@ class PatientView : ComponentActivity() {
 
             )
             {
-                Icon(Icons.Filled.Biotech, contentDescription = "", tint = Color.White, modifier = Modifier
-                    .size(19.dp)
-                    .padding(top = 3.dp, start = 8.dp)
-                )
+                Row(modifier = Modifier.padding(top = 1.dp, start = 8.dp,bottom = 3.dp))
+                {
+                    Icon(
+                        Icons.Filled.Biotech,
+                        contentDescription = "",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(19.dp)
+                            .padding(top = 3.dp, start = 8.dp)
+                    )
+                    showText(chat_details.full_names)
+                }
                 Row()
                 {
 
@@ -1826,6 +2002,128 @@ class PatientView : ComponentActivity() {
         //  }
     }
 
+
+    @Composable
+    fun ChatsHistory()
+    {
+        var chats_list = remember{ mutableStateListOf<ChatSummaryModel>() }
+        val chats_modifier = Modifier
+            .fillMaxHeight()
+            .fillMaxWidth()
+        val main_box_modifier = Modifier.background(Brush.linearGradient( //make a list of colors to mix to create a linear gradient
+            colors = listOf(
+                Color.Black, Color(
+                    2, //transparency
+                    26, //red value
+                    150, //green value
+                    255 //blue value
+                ),
+                Color.Black //black color
+            ),
+            start = Offset.Zero, //offset where to start the shading(top left corner)
+            end = Offset.Infinite, //mix the colors to fill the entire container
+            tileMode = TileMode.Mirror) //mirror the colors such that they repeat each other if the space is large
+        )
+        Scaffold(topBar={ChatsHistoryAppBar()})
+        {innerPadding->Surface(color= Color.Transparent,modifier = chats_modifier.padding(innerPadding))
+        {
+            Box(modifier = main_box_modifier)
+            {
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp))
+                {
+                    //showText("Chat History")
+                    for  (item in mutable_chats_map.keys.toList())
+                    {
+                        var tmp_chat_details = mutable_chats_map[item]?.getChatDetails()
+                        var xchat_details = if( tmp_chat_details !=null) tmp_chat_details else null //temporarily store the names in the chat
+                        Log.i("CHAT_HISTORIES_UUID", item)
+                        if(xchat_details!=null)
+                        {
+                            Log.i("CHAT_DETAILS", "NOT NULL")
+                            var chat_names = xchat_details.full_names
+                            var chat_date = xchat_details.chat_time
+                            MainComposables().ChatSummary(chat_names,chat_date,{
+                                chat_details = xchat_details
+                                main_nav_ctrl.navigate(PatientViewScreens.FOCUS.name+ "/patient/" + item)
+                            })
+                        }
+                        else
+                        {
+                            Log.i("CHAT_DETAILS", "NULL")
+                            break
+                        }
+
+                    }
+                }
+                /*if(show_side_menu.value==true)
+                {
+                    ChatsHistorySideMenu()
+                }
+
+                 */
+
+            }
+        }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun ChatsHistoryAppBar()//, reset: MutableState<Boolean>)
+    {
+        var coroutineScope = rememberCoroutineScope()
+        TopAppBar(//top app bar
+            title = {
+                Text(
+                    "$this_patient_name\nChat History", //greeting text
+                    style = TextStyle(
+                        color=Color.White, //set font color to white
+                        fontSize = TextUnit(13f, TextUnitType.Sp), //set size of the font to 13
+                        fontWeight = FontWeight.Light, //use light font
+                        fontStyle = FontStyle.Normal, //use normal font style
+                        fontFamily = FontFamily.Monospace, //use monospace font family
+                        letterSpacing = TextUnit(1f,TextUnitType.Sp), //space between letters
+
+                    ), //change text style of the greeting text
+                    modifier = Modifier.padding(5.dp) //space between top app bar components
+                )
+            },
+            navigationIcon = {Icon(Icons.Filled.Biotech,contentDescription = "Patient",tint=Color.White,modifier=Modifier.padding(top=5.dp))},
+            modifier = Modifier
+                .height(50.dp) //height of the top app bar to 35dp
+                .shadow(elevation = 10.dp), //elevation of the top app bar from the main app layout
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color(1, 2, 75, 255) //container color of the top app bar
+            ),
+            actions = {
+                //delete icon button to clear the appointment area
+
+                /**
+                Side menu icon
+                 */
+                IconButton(onClick = { /*TODO*/
+
+
+                        main_nav_ctrl.navigate(PatientViewScreens.DASHBOARD.name)
+
+
+                },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        //containerColor = Color.Black,
+                        disabledContainerColor = Color.White
+                    ),
+
+                    )
+                {
+                    Icon(Icons.Filled.Home, contentDescription = "side menu",tint=Color.White)
+
+                }
+                //    }
+            }
+        )
+    }
+
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun InAppBar(chats: MutableList<ChatModel>)//, reset: MutableState<Boolean>)
@@ -1833,7 +2131,7 @@ class PatientView : ComponentActivity() {
         TopAppBar(//top app bar
             title = {
                 Text(
-                    "Hello\n$this_patient_name", //greeting text
+                    "$this_patient_name", //greeting text
                     style = TextStyle(
                         color=Color.White, //set font color to white
                         fontSize = TextUnit(13f, TextUnitType.Sp), //set size of the font to 13
@@ -1893,7 +2191,7 @@ class PatientView : ComponentActivity() {
 
                 }
                 /**
-                    Side menu icon
+                Side menu icon
                  */
 
                 IconButton(onClick = {

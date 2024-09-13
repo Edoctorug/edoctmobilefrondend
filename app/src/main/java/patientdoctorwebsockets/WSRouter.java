@@ -109,6 +109,13 @@ public class WSRouter
         recent_response = responseModel;
     }
 
+    public void labtestsHandler(ResponseModel responseModel)
+    {
+        recent_response = responseModel;
+    }
+
+
+
     
 
     public void chatHistoryHandler(ResponseModel responseModel)
@@ -154,9 +161,16 @@ public class WSRouter
                 appointmentsHandler(response_model);
                 System.out.println("\t\t Appointment Message: "+status_msg);
             break;
-
-
-
+            case "appointment":
+                found_online_doc.set(true);
+                appointmentHandler(response_model);
+                System.out.println("\t\t Appointment Message: "+status_msg);
+                break;
+            case "labtests":
+                found_online_doc.set(true);
+                labtestsHandler(response_model);
+                System.out.println("\t\t LabTest Message: "+status_msg);
+                break;
             case "prescribe":
                 found_online_doc.set(true);
                 prescribeHandler(response_model);
