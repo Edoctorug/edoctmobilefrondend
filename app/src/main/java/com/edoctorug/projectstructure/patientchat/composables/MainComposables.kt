@@ -1,5 +1,6 @@
 package com.edoctorug.projectstructure.patientchat.composables
 
+import androidx.compose.foundation.Image
 import patientdoctorwebsockets.Models.*
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -32,6 +33,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import com.spr.jetpack_loading.components.indicators.BallBeatIndicator
+import com.spr.jetpack_loading.components.indicators.PulsatingDot
+
 import androidx.compose.ui.res.integerResource
 import com.edoctorug.projectstructure.patientchat.R
 import androidx.compose.material.icons.Icons
@@ -56,9 +59,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 //import androidx.compose.foundation.shape.RectangleShape
 import androidx.compose.foundation.layout.Arrangement
+//import androidx.compose.foundation.layout.FlowRowScopeInstance.align
 import androidx.navigation.NavHostController
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
 import com.edoctorug.projectstructure.patientchat.constants.MainParams.DoctorViewScreens
 
 import coil.compose.AsyncImage
@@ -71,6 +78,28 @@ class MainComposables
         BallBeatIndicator(ballDiameter = 8f,
             ballCount = 10,
             spaceBetweenBalls = integerResource(id = R.integer.text_spacing_default).toFloat()
+        )
+    }
+
+    @Composable
+    public fun showLogo(){
+        Image(
+            ImageBitmap.imageResource(R.drawable.edoctor_logo_white),
+            contentDescription = "Patient",
+            //tint=Color.White,
+            modifier= Modifier
+                .padding(top = 5.dp),
+               // .align(alignment = Alignment.CenterHorizontally),
+            filterQuality = FilterQuality.High
+        )
+    }
+
+
+    @Composable
+    public fun showLoadingPulse()
+    {
+        PulsatingDot(ballDiameter = 15f,
+            color = Color.White
         )
     }
 
@@ -87,7 +116,9 @@ class MainComposables
             //btn_state.value = !btn_state.value
             chatfx()
         },
-        modifier = Modifier.background(Color(0xff060b2b),RoundedCornerShape(1.dp)).fillMaxWidth(), colors = btn_defaults)
+        modifier = Modifier
+            .background(Color(0xff060b2b), RoundedCornerShape(1.dp))
+            .fillMaxWidth(), colors = btn_defaults)
         {
             Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
             {
@@ -140,7 +171,9 @@ class MainComposables
             //btn_state.value = !btn_state.value
             chatfx()
         },
-        modifier = Modifier.background(Color(0xff060b2b),RoundedCornerShape(1.dp)).fillMaxWidth(), colors = btn_defaults)
+        modifier = Modifier
+            .background(Color(0xff060b2b), RoundedCornerShape(1.dp))
+            .fillMaxWidth(), colors = btn_defaults)
         {
             Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
             {
@@ -168,7 +201,9 @@ class MainComposables
             //btn_state.value = !btn_state.value
             chatfx()
         },
-        modifier = Modifier.background(Color(0xff060b2b),RoundedCornerShape(1.dp)).fillMaxWidth(), colors = btn_defaults)
+        modifier = Modifier
+            .background(Color(0xff060b2b), RoundedCornerShape(1.dp))
+            .fillMaxWidth(), colors = btn_defaults)
         {
             Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
             {
@@ -177,6 +212,51 @@ class MainComposables
                 {
                     showText("Patient Name: $chat_slave")
                     showText("Diagnosis On: $chat_date")
+                }
+            }
+        }
+    }
+
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun LabTestSummary(chat_slave: String,test_name: String, chat_date: String,chatfx: () -> Unit)
+    {
+        var btn_state = remember{mutableStateOf(true)}
+        /*
+        var test_for = chat_slave.labtest_for
+        var test_author = chat_slave.labtest_author
+        var test_name = chat_slave.labtest_name
+        var test_date = chat_slave.labtest_date
+        var test_details = chat_slave.labtest_details
+        var test_results = chat_slave.labtest_results*/
+        var btn_defaults= ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            disabledContainerColor = Color.DarkGray
+        )
+        Button( onClick = {
+            //btn_state.value = !btn_state.value
+            chatfx()
+        },
+            modifier = Modifier
+                .background(Color(0xff060b2b), RoundedCornerShape(1.dp))
+                .fillMaxWidth(), colors = btn_defaults)
+        {
+            Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+            {
+                Icon(Icons.Filled.CalendarMonth, contentDescription = "calender month", tint = Color.White,modifier = Modifier.size(30.dp))
+                Column()
+                {
+                    /*showText("\t\tTest name: $test_name")
+                    showText("Patient name: $test_for")
+                    showText("Test Author: $test_author")
+                    showText("Test On: $test_date")
+                    showText("Test details: $test_details")
+                    showText("\t\tTest Results: $test_results")*/
+                    showText("test name: $test_name")
+                    showText("test by: $chat_slave")
+                    showText("test on: $chat_date")
+
                 }
             }
         }
@@ -195,7 +275,9 @@ class MainComposables
             //btn_state.value = !btn_state.value
             chatfx()
         },
-        modifier = Modifier.background(Color(0xff060b2b),RoundedCornerShape(1.dp)).fillMaxWidth(), colors = btn_defaults)
+        modifier = Modifier
+            .background(Color(0xff060b2b), RoundedCornerShape(1.dp))
+            .fillMaxWidth(), colors = btn_defaults)
         {
             Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
             {
@@ -222,7 +304,9 @@ class MainComposables
             //btn_state.value = !btn_state.value
             chatfx()
         },
-        modifier = Modifier.background(Color(0xff060b2b),RoundedCornerShape(1.dp)).fillMaxWidth(), colors = btn_defaults)
+        modifier = Modifier
+            .background(Color(0xff060b2b), RoundedCornerShape(1.dp))
+            .fillMaxWidth(), colors = btn_defaults)
         {
             Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
             {
@@ -249,7 +333,9 @@ class MainComposables
             //btn_state.value = !btn_state.value
             chatfx()
         },
-        modifier = Modifier.background(Color(0xff060b2b),RoundedCornerShape(1.dp)).fillMaxWidth(), colors = btn_defaults)
+        modifier = Modifier
+            .background(Color(0xff060b2b), RoundedCornerShape(1.dp))
+            .fillMaxWidth(), colors = btn_defaults)
         {
             Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
             {
@@ -287,7 +373,9 @@ class MainComposables
     fun ItemView(item_details: ItemDetails,onclick_fx: () -> Unit)
     {
         //item view modifier
-        var item_modifier = Modifier.background(Color.White, RoundedCornerShape(5.dp)).width(300.dp)
+        var item_modifier = Modifier
+            .background(Color.White, RoundedCornerShape(5.dp))
+            .width(300.dp)
         
         Column(modifier = item_modifier.clickable(onClick = { onclick_fx()}))
         {
@@ -324,7 +412,9 @@ class MainComposables
             )//Label for this layout
         )
             TextButton(
-                modifier = Modifier.fillMaxWidth().align(alignment = Alignment.CenterHorizontally),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(alignment = Alignment.CenterHorizontally),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Red,
                     disabledContainerColor = Color.Blue

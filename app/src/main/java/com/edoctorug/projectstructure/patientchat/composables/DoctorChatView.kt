@@ -148,7 +148,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 * @param chat_case The `ChatCase` object that manages the chat conversation and stores the chat history.
 */
 
-class DoctorChatView(private var prev_nav_ctrl: NavHostController,private var chat_case: ChatCase) : ComponentActivity() {
+class DoctorChatView(private var prev_nav_ctrl: NavHostController,private var chat_case: ChatCase,private var is_loading_global: MutableState<Boolean>) : ComponentActivity() {
 
     /**
     *Variable containing the url to the hospital's server backend
@@ -1913,10 +1913,11 @@ class DoctorChatView(private var prev_nav_ctrl: NavHostController,private var ch
 
                                         wsPrescibe(medicine_name,medicine_dose, main_hospital_man)
                                     }
+                                    is_loading_global.value = true
                                 }
                               })
                 {
-                    if(prescribe_btn_state.value == false )
+                    if(is_loading_global.value == false )
                     {
                         Icon(Icons.Filled.Biotech, contentDescription = "")
                         Text(
@@ -2002,7 +2003,7 @@ class DoctorChatView(private var prev_nav_ctrl: NavHostController,private var ch
        }
             
             
-       }
+    }
 
 
     /**
@@ -2142,10 +2143,11 @@ class DoctorChatView(private var prev_nav_ctrl: NavHostController,private var ch
 
                                         wsLabTest(test_name,test_personel, main_hospital_man)
                                     }
+                                    is_loading_global.value = true
                                 }
                               })
                 {
-                    if(prescribe_btn_state.value == false )
+                    if(is_loading_global.value == false )
                     {
                         Icon(Icons.Filled.Biotech, contentDescription = "")
                         Text(
@@ -2383,6 +2385,7 @@ class DoctorChatView(private var prev_nav_ctrl: NavHostController,private var ch
 
                                         wsOrderItem(item_name,item_quantity.toInt(), pharmacy_id,main_hospital_man)
                                     }
+                                    is_loading_global.value = true
                                 }
                               })
                 {
@@ -2580,10 +2583,11 @@ class DoctorChatView(private var prev_nav_ctrl: NavHostController,private var ch
                                         
                                         wsSaveRecord(record_name,record_details, main_hospital_man)
                                     }
+                                    is_loading_global.value = true
                                 }
                               })
                 {
-                    if(save_record_btn_state.value == false )
+                    if(is_loading_global.value == false )
                     {
                         Icon(Icons.Filled.Biotech, contentDescription = "")
                         Text(

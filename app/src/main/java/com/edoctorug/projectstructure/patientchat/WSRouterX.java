@@ -37,6 +37,7 @@ public class WSRouterX extends WSRouter
 {
     List<ChatModel> chat_lists;
     MutableState<String> results_string;
+    MutableState<String> global_msg;
 
     public SnapshotStateMap<String, AppointmentDetails> appointment_details;
     public SnapshotStateMap<String, PrescriptionDetails> prescriptions_details;
@@ -92,7 +93,6 @@ public class WSRouterX extends WSRouter
         results_string = xresults_string;
         chat_loader_fin = xactive_navCtrl;
     }
-    
 
     public WSRouterX(List<ChatModel> chat_models, MutableState<String> xresults_string,MutableState<Boolean> xactive_navCtrl, MutableState<Boolean> dialog_state)
     {
@@ -100,6 +100,17 @@ public class WSRouterX extends WSRouter
         results_string = xresults_string;
         chat_loader_fin = xactive_navCtrl;
         is_global_loading = dialog_state;
+        //global_msg = xglobal_msg;
+    }
+    
+
+    public WSRouterX(List<ChatModel> chat_models, MutableState<String> xresults_string,MutableState<Boolean> xactive_navCtrl, MutableState<Boolean> dialog_state, MutableState<String> xglobal_msg)
+    {
+        chat_lists = chat_models;
+        results_string = xresults_string;
+        chat_loader_fin = xactive_navCtrl;
+        is_global_loading = dialog_state;
+        global_msg = xglobal_msg;
     }
 
     /**
@@ -142,6 +153,9 @@ public class WSRouterX extends WSRouter
         else{
 
         }
+        String status_msg = responseModel.status_msg;
+        is_global_loading.setValue(false);
+        global_msg.setValue(status_msg);
 
     }
 
@@ -175,7 +189,9 @@ public class WSRouterX extends WSRouter
         else{
 
         }
-
+        String status_msg = responseModel.status_msg;
+        is_global_loading.setValue(false);
+        global_msg.setValue(status_msg);
     }
 
     /**
@@ -208,6 +224,9 @@ public class WSRouterX extends WSRouter
         else{
 
         }
+        String status_msg = responseModel.status_msg;
+        is_global_loading.setValue(false);
+        global_msg.setValue(status_msg);
 
     }
 
@@ -274,7 +293,9 @@ public class WSRouterX extends WSRouter
         else{
 
         }
-
+        String status_msg = responseModel.status_msg;
+        is_global_loading.setValue(false);
+        global_msg.setValue(status_msg);
     }
 
 
@@ -310,6 +331,10 @@ public class WSRouterX extends WSRouter
 
         }
 
+        String status_msg = responseModel.status_msg;
+        is_global_loading.setValue(false);
+        global_msg.setValue(status_msg);
+
     }
 
     /**
@@ -342,6 +367,9 @@ public class WSRouterX extends WSRouter
         else{
 
         }
+        String status_msg = responseModel.status_msg;
+        is_global_loading.setValue(false);
+        global_msg.setValue(status_msg);
 
     }
 
@@ -356,6 +384,7 @@ public class WSRouterX extends WSRouter
         //results_string.setValue(responseModel.status_msg);
 
         int status_code = responseModel.status_code;
+        String status_msg = responseModel.status_msg;
         Log.i("CALL HISTORY","CALLED CHAT HISTORY");
         if(status_code == 200)
         {
@@ -394,6 +423,8 @@ public class WSRouterX extends WSRouter
         else{
 
         }
+        is_global_loading.setValue(false);
+        global_msg.setValue(status_msg);
 
     }
 

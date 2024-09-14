@@ -8,15 +8,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 public class LabTestDetails
 {
-    public String labtest_uuid;
-    public String labtest_name;
-    public String labtest_for;
-    public String labtest_author;
+    public String labtest_uuid ="";
+    public String labtest_name = "";
+    public String labtest_for = "";
+    public String labtest_author = "";
 
     //public String labtest_time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MMM/yyyy HH:mm:ss a")); // get the current date and time when
-    public String labtest_date;
-    public String labtest_details;
-    public String labtest_results;
+    public String labtest_date = "";
+    public String labtest_details = "";
+    public String labtest_results = "";
     public String toJson()
     {
         ObjectMapper this_mapper = new ObjectMapper();

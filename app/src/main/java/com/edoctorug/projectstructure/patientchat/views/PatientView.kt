@@ -106,6 +106,7 @@ import com.spr.jetpack_loading.components.indicators.PacmanIndicator
 import android.util.Log
 import android.view.RoundedCorner
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.ExitToApp
@@ -130,6 +131,7 @@ import androidx.compose.material3.TimePickerState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.window.DialogProperties
 import com.edoctorug.projectstructure.patientchat.ChatSummaryModel
 import com.edoctorug.projectstructure.patientchat.HospitalManSingleton
 import com.edoctorug.projectstructure.patientchat.composables.AppointmentsComposable
@@ -155,7 +157,7 @@ import patientdoctorwebsockets.Models.OrderDetails
 import patientdoctorwebsockets.Models.PrescriptionDetails
 import patientdoctorwebsockets.Models.RecordDetails
 import java.time.LocalTime
-
+import com.spr.jetpack_loading.components.indicators.PulsatingDot
 class PatientView : ComponentActivity() {
 
     val hospital_url = ConnectionParams.hospital_url //localhost
@@ -163,7 +165,7 @@ class PatientView : ComponentActivity() {
     *Variable containing the port the hospital's server backend is listening on
     */
     var hospital_port = ConnectionParams.hospital_port //port number the server backend is listening to
-
+    var next_page: String = PatientViewScreens.DASHBOARD.name
     lateinit var chat_details: ChatDetails
 
     lateinit var this_patient_name: String
@@ -180,6 +182,7 @@ class PatientView : ComponentActivity() {
     lateinit var main_nav_ctrl: NavHostController //nav host controller to use for the patient view
 
     lateinit var result_msg: MutableState<String>
+    lateinit var global_msg: MutableState<String>
 
     lateinit var chat_loading_fin: MutableState<Boolean>
 
@@ -249,6 +252,7 @@ class PatientView : ComponentActivity() {
             //hospitalman = remember{ mutableStateOf(main_hospital_man)}
             chats = remember{ mutableStateListOf<ChatModel>() }
             result_msg = remember { mutableStateOf("") }
+            global_msg = remember { mutableStateOf("") }
             chat_loading_fin = remember {mutableStateOf(false)}
             is_global_loading = remember { mutableStateOf(false) }
             appointments_holder =  remember {
@@ -384,19 +388,19 @@ class PatientView : ComponentActivity() {
         //mutable list of current chat objects
         var scroll_state = rememberScrollState() //get a sctate of the scroll
         main_nav_ctrl = rememberNavController()
-        active_wsrouterx = WSRouterX(chats,result_msg,chat_loading_fin,is_global_loading)
+        active_wsrouterx = WSRouterX(chats,result_msg,chat_loading_fin,is_global_loading,global_msg)
         this_ws_listener.setActiveRouter(active_wsrouterx)
 
         active_wsrouterx.setDataHolders(appointments_holder,mutable_prescriptions_map,mutable_orders_map,mutable_records_map,mutable_diagnoses_map,mutable_labtests_map,mutable_chats_map)
 
 
 
-        appointments_composable = AppointmentsComposable("patient",main_nav_ctrl,appointments_holder)
-        records_composable = RecordsComposable("patient",main_nav_ctrl,mutable_records_map)
-        diagnoses_composable = DiagnosesComposable("patient",main_nav_ctrl,mutable_diagnoses_map)
-        labtests_composable = LabTestsComposable("patient",main_nav_ctrl,mutable_labtests_map)
-        prescriptions_composable = PrescriptionsComposable("patient",main_nav_ctrl,mutable_prescriptions_map)
-        orders_composable = OrdersComposable("patient",main_nav_ctrl,mutable_orders_map)
+        appointments_composable = AppointmentsComposable("patient",main_nav_ctrl,appointments_holder,is_global_loading)
+        records_composable = RecordsComposable("patient",main_nav_ctrl,mutable_records_map,is_global_loading)
+        diagnoses_composable = DiagnosesComposable("patient",main_nav_ctrl,mutable_diagnoses_map,is_global_loading)
+        labtests_composable = LabTestsComposable("patient",main_nav_ctrl,mutable_labtests_map,is_global_loading)
+        prescriptions_composable = PrescriptionsComposable("patient",main_nav_ctrl,mutable_prescriptions_map,is_global_loading)
+        orders_composable = OrdersComposable("patient",main_nav_ctrl,mutable_orders_map,is_global_loading)
 
         /*
         LaunchedEffect(Unit){
@@ -408,6 +412,7 @@ class PatientView : ComponentActivity() {
         {
             GlobalScope.launch {
                 main_hospital_man.getChatHistory();
+                is_global_loading.value = true
             }
         }
 
@@ -460,6 +465,10 @@ class PatientView : ComponentActivity() {
 
                 */
                     dashNav()
+                    if ((is_global_loading.value==true) or (global_msg.value.length>0)){
+                        loaderUI()
+                    }
+
 
             }
         }
@@ -641,6 +650,119 @@ class PatientView : ComponentActivity() {
     }
 
     /**
+     * Loading View
+     */
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun BoxScope.loaderUI()
+    {
+
+        /*AlertDialog(
+            onDismissRequest = {
+                //chatbox_nav_ctrl.navigate(MainParams.DoctorViewScreens.CHATBOX_MAIN.name)
+                is_global_loading.value = false
+                global_msg.value = ""
+            },
+            properties = DialogProperties(dismissOnClickOutside = true, dismissOnBackPress = true),
+            modifier = Modifier.background(color = Color.Black),
+
+            )
+
+        {*/
+        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight().background(Brush.linearGradient(listOf(
+            Color.Black,
+            Color.Black
+        ),
+            Offset.Zero,
+            Offset.Infinite,
+            TileMode.Repeated), shape = RoundedCornerShape(8.dp),alpha = 0.8f).clickable(enabled=true){
+
+        }, contentAlignment = Alignment.Center)
+        {
+            Column( modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .fillMaxHeight(0.2f)
+                .align(alignment = Alignment.Center)//place this layout at the center of the parent
+                .background(
+                    Color(
+                        2, //transparency
+                        26, //red value
+                        150, //green value
+                        255 //blue value
+                    ), shape = RoundedCornerShape(20.dp)
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+
+                )
+            {
+                Row(modifier = Modifier.background(Color.Transparent))
+                {
+                    Icon(
+                        Icons.Filled.Biotech,
+                        contentDescription = "alert message icon",
+                        tint = Color.White
+                    )
+                    showText(text = "Edoctor ")
+                }
+
+                if(global_msg.value.length>0)
+                {
+
+                    showText(text = global_msg.value)
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Black,
+                            disabledContainerColor = Color.Gray
+                        ),
+                        modifier = Modifier
+                            .padding(top = 5.dp),
+                            //.align(alignment = Alignment.CenterVertically),
+                        onClick = { /*TODO*/
+
+                            is_global_loading.value = false
+                            global_msg.value = ""
+
+
+                        })
+                    {
+                        showText("OKAY")
+                    }
+                }
+                else{
+                    showText(text = "Please Wait ... ")
+                    Box(modifier = Modifier
+                        .padding(top = 2.dp)
+                        .align(Alignment.CenterHorizontally),contentAlignment = Alignment.Center) {
+                        MainComposables().showLoadingPulse()
+                        Button(
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Black,
+                                disabledContainerColor = Color.Gray
+                            ),
+                            modifier = Modifier
+                                .padding(top = 5.dp),
+                            //.align(alignment = Alignment.CenterVertically),
+                            onClick = { /*TODO*/
+
+                                is_global_loading.value = false
+                                global_msg.value = ""
+
+
+                            })
+                        {
+                            showText("CANCEL")
+                        }
+                    }
+                }
+
+            }
+        }
+
+
+    }
+
+
+    /**
      * Patient Dashboard
      */
     @Composable
@@ -809,6 +931,7 @@ class PatientView : ComponentActivity() {
                         //global_enabled = this_enabled
                         this_enabled.value = !this_enabled.value
                         last_enabled = this_enabled
+                        is_global_loading.value = true
                         GlobalScope.launch{
                             main_hospital_man.getAppointments()
                         }
@@ -885,10 +1008,14 @@ class PatientView : ComponentActivity() {
                         //global_enabled = this_enabled
                         this_enabled.value = !this_enabled.value
                         last_enabled = this_enabled
+                        is_global_loading.value = true
+
                         GlobalScope.launch{
                             //main_hospital_man.getDiagnoses()
+
                             main_hospital_man.getLabTests();
                         }
+
                         main_nav_ctrl.navigate(PatientViewScreens.LABTESTS.name)
                     },
                     enabled = (this_enabled.value),
@@ -954,6 +1081,7 @@ class PatientView : ComponentActivity() {
                         //global_enabled = this_enabled
                         this_enabled.value = !this_enabled.value
                         last_enabled = this_enabled
+                        is_global_loading.value = true
                         GlobalScope.launch{
                             main_hospital_man.getPrescriptions()
                         }
@@ -1022,6 +1150,7 @@ class PatientView : ComponentActivity() {
                         //global_enabled = this_enabled
                         this_enabled.value = !this_enabled.value
                         last_enabled = this_enabled
+                        is_global_loading.value = true
                         GlobalScope.launch{
                             main_hospital_man.getOrders()
                         }
@@ -1090,6 +1219,7 @@ class PatientView : ComponentActivity() {
                         //global_enabled = this_enabled
                         this_enabled.value = !this_enabled.value
                         last_enabled = this_enabled
+                        is_global_loading.value = true
                         GlobalScope.launch{
                             main_hospital_man.getRecords()
                         }

@@ -158,7 +158,7 @@ import kotlin.collections.mutableMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.edoctorug.projectstructure.patientchat.constants.MainParams
 
-class LabTestsComposable(private val xthis_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_labtests_map: SnapshotStateMap<String, LabTestDetails>)
+class LabTestsComposable(private val xthis_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_labtests_map: SnapshotStateMap<String, LabTestDetails>, private val loading_fin: MutableState<Boolean>)
 {
 
 
@@ -220,6 +220,7 @@ class LabTestsComposable(private val xthis_role: String,private val tmp_home_nav
 
         // if(is_auth==false)
         //{
+        /*
         GlobalScope.launch{
             main_hospital_man.getLabTests()
             //NetworkUtils().wslogin(this_role,global_session_id, main_hospital_man, this_ws_listener,main_context)
@@ -228,6 +229,7 @@ class LabTestsComposable(private val xthis_role: String,private val tmp_home_nav
             //doctor_viewmodel.wslogin(this_ws_listener)
             //doctor_viewmodel.printCookies()
         }
+        */
         LabTestsHistory()
         //  }
 
@@ -281,10 +283,12 @@ class LabTestsComposable(private val xthis_role: String,private val tmp_home_nav
                                 if (tmp_labtest_details != null) tmp_labtest_details else null //temporarily store the names in the labtest
 
                             if (labtest_details != null) {
-                                var labtest_names = labtest_details.labtest_for
+                                var labtest_names = labtest_details.labtest_name
+                                var labtest_author = labtest_details.labtest_author
                                 var labtest_date = labtest_details.labtest_date
-                                MainComposables().RecordSummary(
+                                MainComposables().LabTestSummary(
                                     labtest_names,
+                                    labtest_author,
                                     labtest_date,
                                     {
                                         active_labtest_details = labtest_details
@@ -297,7 +301,12 @@ class LabTestsComposable(private val xthis_role: String,private val tmp_home_nav
                         }
                     }
                     else{
-                        showText(text = "No LabTests Available")
+                        if(loading_fin.value == false) {
+                            showText(text = "No LabTests Available")
+                        }
+                        else{
+                            showText(text = "Loading, Please wait")
+                        }
                     }
 
                 }
@@ -411,6 +420,13 @@ class LabTestsComposable(private val xthis_role: String,private val tmp_home_nav
         var labtest_uuid = active_labtest_details.labtest_uuid
         var labtest_time =  active_labtest_details.labtest_date
         var labtest_note =  active_labtest_details.labtest_details
+
+        
+        var labtest_author = active_labtest_details.labtest_author
+        var labtest_name = active_labtest_details.labtest_name
+        
+        
+        var labtest_results = active_labtest_details.labtest_results
         Column(//a column layout in the box layout
             modifier = Modifier
                 .fillMaxWidth(0.7f)
@@ -422,7 +438,7 @@ class LabTestsComposable(private val xthis_role: String,private val tmp_home_nav
              * LabTest title
              */
             Text(
-                "LabTest Details",
+                "$labtest_name Details",
                 modifier = Modifier
                     .padding(5.dp)
                     .align(alignment = Alignment.CenterHorizontally), style = TextStyle(
@@ -433,8 +449,11 @@ class LabTestsComposable(private val xthis_role: String,private val tmp_home_nav
                     letterSpacing = TextUnit(2f, TextUnitType.Sp)
                 )//Label for this layout
             )
-            showText("\tWith: $labtest_user_name")
-            showText("\tAt: $labtest_time")
+            
+            showText("\tTest By: $labtest_author")
+            showText("\tPatient: $labtest_user_name")
+            showText("\tCreated On: $labtest_time")
+            showText(text = "\tTest Results:\n $labtest_results")
             showText("\tNotes:\n $labtest_note")
 
             Row(modifier = Modifier

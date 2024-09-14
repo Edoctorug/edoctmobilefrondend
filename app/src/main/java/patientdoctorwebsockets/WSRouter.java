@@ -113,6 +113,10 @@ public class WSRouter
     {
         recent_response = responseModel;
     }
+    public void labtestHandler(ResponseModel responseModel)
+    {
+        recent_response = responseModel;
+    }
 
 
 
@@ -165,15 +169,20 @@ public class WSRouter
                 found_online_doc.set(true);
                 appointmentHandler(response_model);
                 System.out.println("\t\t Appointment Message: "+status_msg);
-                break;
+            break;
+            case "labtest":
+                found_online_doc.set(true);
+                labtestHandler(response_model);
+                System.out.println("\t\t LabTest Message: "+status_msg);
+            break;
             case "labtests":
                 found_online_doc.set(true);
                 labtestsHandler(response_model);
                 System.out.println("\t\t LabTest Message: "+status_msg);
-                break;
+            break;
             case "prescribe":
                 found_online_doc.set(true);
-                prescribeHandler(response_model);
+                prescriptionHandler(response_model);
                 System.out.println("\t\t Appointment Message: "+status_msg);
             break;
 
@@ -192,6 +201,11 @@ public class WSRouter
             case "records":
                 found_online_doc.set(true);
                 recordsHandler(response_model);
+                System.out.println("\t\t records Message: "+status_msg);
+            break;
+            case "record":
+                found_online_doc.set(true);
+                recordHandler(response_model);
                 System.out.println("\t\t records Message: "+status_msg);
             break;
             case "orders":

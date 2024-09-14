@@ -156,7 +156,7 @@ import kotlin.collections.mutableMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.edoctorug.projectstructure.patientchat.constants.MainParams.PatientViewScreens
 
-class AppointmentsComposable(private val xthis_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_appointments_map: SnapshotStateMap<String, AppointmentDetails>)
+class AppointmentsComposable(private val xthis_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_appointments_map: SnapshotStateMap<String, AppointmentDetails>, private val loading_fin: MutableState<Boolean>)
 {
 
     
@@ -219,7 +219,7 @@ class AppointmentsComposable(private val xthis_role: String,private val tmp_home
         /*if(is_auth==false)
         {*/
         GlobalScope.launch{
-            main_hospital_man.getAppointments();
+            //main_hospital_man.getAppointments();
             //NetworkUtils().wslogin(this_role,global_session_id, main_hospital_man, this_ws_listener,main_context)
             //main_hospital_man.authWebSocket(this_ws_listener)
             //NetworkUtils().xwslogin(this_ws_listener,doctor_viewmodel)
@@ -301,7 +301,12 @@ class AppointmentsComposable(private val xthis_role: String,private val tmp_home
                                         }
                                     }
                                     else{
-                                        showText("Sorry, No Appointments")
+                                        if(loading_fin.value == false) {
+                                            showText(text = "Sorry, No Appointments, Available")
+                                        }
+                                        else{
+                                            showText(text = "Loading, Please wait")
+                                        }
                                     }
                                     
                                 }

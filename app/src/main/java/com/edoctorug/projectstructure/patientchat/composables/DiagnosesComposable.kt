@@ -156,7 +156,7 @@ import kotlin.collections.mutableMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.edoctorug.projectstructure.patientchat.constants.MainParams
 
-class DiagnosesComposable(private val xthis_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_diagnoses_map: SnapshotStateMap<String, DiagnosisDetails>)
+class DiagnosesComposable(private val xthis_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_diagnoses_map: SnapshotStateMap<String, DiagnosisDetails>, private val loading_fin: MutableState<Boolean>)
 {
 
     
@@ -219,7 +219,7 @@ class DiagnosesComposable(private val xthis_role: String,private val tmp_home_na
         //if(is_auth==false)
         //{
         GlobalScope.launch{
-            main_hospital_man.getDiagnoses()
+            //main_hospital_man.getDiagnoses()
             //NetworkUtils().wslogin(this_role,global_session_id, main_hospital_man, this_ws_listener,main_context)
             //main_hospital_man.authWebSocket(this_ws_listener)
             //NetworkUtils().xwslogin(this_ws_listener,doctor_viewmodel)
@@ -299,7 +299,12 @@ class DiagnosesComposable(private val xthis_role: String,private val tmp_home_na
                                         }
                                     }
                                     else{
-                                        showText(text = "No Diagnoses Available")
+                                        if(loading_fin.value == false) {
+                                            showText(text = "No Diagnoses Available")
+                                        }
+                                        else{
+                                            showText(text = "Loading, Please wait")
+                                        }
                                     }
                                     
                                 }

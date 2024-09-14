@@ -156,7 +156,7 @@ import kotlin.collections.mutableMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.edoctorug.projectstructure.patientchat.constants.MainParams
 
-class RecordsComposable(private val xthis_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_records_map: SnapshotStateMap<String, RecordDetails>)
+class RecordsComposable(private val xthis_role: String,private val tmp_home_nav_ctrl: NavHostController,private val mutable_records_map: SnapshotStateMap<String, RecordDetails>, private val loading_fin: MutableState<Boolean>)
 {
 
     
@@ -219,7 +219,7 @@ class RecordsComposable(private val xthis_role: String,private val tmp_home_nav_
        // if(is_auth==false)
         //{
         GlobalScope.launch{
-            main_hospital_man.getRecords()
+            //main_hospital_man.getRecords()
             //NetworkUtils().wslogin(this_role,global_session_id, main_hospital_man, this_ws_listener,main_context)
             //main_hospital_man.authWebSocket(this_ws_listener)
             //NetworkUtils().xwslogin(this_ws_listener,doctor_viewmodel)
@@ -295,7 +295,12 @@ class RecordsComposable(private val xthis_role: String,private val tmp_home_nav_
                                         }
                                     }
                                     else{
-                                        showText(text = "No Records Available")
+                                        if(loading_fin.value == false) {
+                                            showText(text = "No Records Available")
+                                        }
+                                        else{
+                                            showText(text = "Loading, Please wait")
+                                        }
                                     }
                                     
                                 }

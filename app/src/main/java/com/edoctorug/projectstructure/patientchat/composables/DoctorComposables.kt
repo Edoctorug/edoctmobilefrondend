@@ -116,6 +116,7 @@ import com.edoctorug.projectstructure.patientchat.NetworkUtils
 
 import com.spr.jetpack_loading.components.indicators.PacmanIndicator
 import android.util.Log
+import androidx.compose.foundation.clickable
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -200,10 +201,13 @@ class DoctorComposables(): WSRouter()
     lateinit var mutable_chats_map: SnapshotStateMap<String, MutableList<ChatModel>>
     lateinit var mutable_appointments_map: SnapshotStateMap<String, AppointmentDetails>
     lateinit var mutable_records_map: SnapshotStateMap<String, RecordDetails>
+    lateinit var mutable_labtests_map: SnapshotStateMap<String, LabTestDetails>
     lateinit var mutable_diagnoses_map: SnapshotStateMap<String, DiagnosisDetails>
     lateinit var mutable_prescriptions_map: SnapshotStateMap<String, PrescriptionDetails>
     lateinit var mutable_orders_map: SnapshotStateMap<String, OrderDetails>
-
+    lateinit var is_global_loading: MutableState<Boolean>
+    lateinit var global_msg: MutableState<String>
+    lateinit var is_chats_loading: MutableState<Boolean>
 
 
     lateinit var appointments_composable: AppointmentsComposable
@@ -256,17 +260,20 @@ class DoctorComposables(): WSRouter()
 
        
        if(home_loaded==false)
-       {
+       { is_global_loading = remember { mutableStateOf(false) }
         mutable_chat_map = remember {mutableStateMapOf()}
         mutable_chats_map = remember {mutableStateMapOf()}
         mutable_appointments_map = remember {mutableStateMapOf()}
         mutable_records_map = remember {mutableStateMapOf()}
+        mutable_labtests_map = remember {mutableStateMapOf()}
         mutable_diagnoses_map = remember {mutableStateMapOf()}
         mutable_prescriptions_map = remember {mutableStateMapOf()}
         mutable_orders_map = remember {mutableStateMapOf()}
+        global_msg =  remember {mutableStateOf("")}
 
         coroutineScope =  rememberCoroutineScope()
         show_response_window = remember{ mutableStateOf(false) }
+        is_chats_loading = remember{ mutableStateOf(false) }
         show_chat_request = remember{ mutableStateOf(false)}
         main_context = LocalContext.current
 
@@ -283,6 +290,7 @@ class DoctorComposables(): WSRouter()
             main_hospital_man.authWebSocket(this_ws_listener)
 
             main_hospital_man.getChatHistory()
+
             main_hospital_man.getRecords()
             main_hospital_man.getAppointments()
             main_hospital_man.getPrescriptions()
@@ -290,6 +298,7 @@ class DoctorComposables(): WSRouter()
             //doctor_viewmodel.wslogin(this_ws_listener)
             //doctor_viewmodel.printCookies()
         }
+            is_chats_loading.value = true
         }
        
 
@@ -297,10 +306,15 @@ class DoctorComposables(): WSRouter()
         
         //main_hospital_man.authWebSocket(this_ws_listener,global_session_id)
         Box()
-
         {
             
             dashNav()
+            if (is_chats_loading.value == true){
+                chatsloaderUI()
+            }
+            if (is_global_loading.value == true){
+                loaderUI()
+            }
             if((show_response_window.value == true))
             {
                 //showText(text = "Alert Message")
@@ -329,11 +343,11 @@ class DoctorComposables(): WSRouter()
          * Navigation controller for the main DoctorView DashBoard
          *
          */
-        appointments_composable = AppointmentsComposable(this_role,home_nav_ctrl,mutable_appointments_map)
-        records_composable = RecordsComposable(this_role,home_nav_ctrl,mutable_records_map)
-        diagnoses_composable = DiagnosesComposable(this_role,home_nav_ctrl,mutable_diagnoses_map)
-        prescriptions_composable = PrescriptionsComposable(this_role,home_nav_ctrl,mutable_prescriptions_map)
-        orders_composable = OrdersComposable(this_role,home_nav_ctrl,mutable_orders_map)
+        appointments_composable = AppointmentsComposable(this_role,home_nav_ctrl,mutable_appointments_map,is_global_loading)
+        records_composable = RecordsComposable(this_role,home_nav_ctrl,mutable_records_map,is_global_loading)
+        diagnoses_composable = DiagnosesComposable(this_role,home_nav_ctrl,mutable_diagnoses_map,is_global_loading)
+        prescriptions_composable = PrescriptionsComposable(this_role,home_nav_ctrl,mutable_prescriptions_map,is_global_loading)
+        orders_composable = OrdersComposable(this_role,home_nav_ctrl,mutable_orders_map,is_global_loading)
         NavHost(navController = home_nav_ctrl, startDestination = DoctorViewScreens.CHAT_HISTORY.name)
         {
             /**
@@ -961,7 +975,7 @@ override fun matchHandler(response_mdl: ResponseModel)
     (main_context as Activity).runOnUiThread{ 
         if(mutable_chat_map.get(chat_details.chat_uuid)==null)
         {
-            mutable_chat_map[chat_details.chat_uuid] = DoctorChatView(home_nav_ctrl,ChatCase(doc_names,chat_details))
+            mutable_chat_map[chat_details.chat_uuid] = DoctorChatView(home_nav_ctrl,ChatCase(doc_names,chat_details),is_global_loading)
         }
     }
     
@@ -999,7 +1013,7 @@ override fun chatHistoryHandler(response_mdl: ResponseModel )
         
             var doc_names = this_doctor_names
             (main_context as Activity).runOnUiThread{ 
-                                    mutable_chat_map[chat_details.chat_uuid] = DoctorChatView(home_nav_ctrl,ChatCase(doc_names,chat_details))
+                                    mutable_chat_map[chat_details.chat_uuid] = DoctorChatView(home_nav_ctrl,ChatCase(doc_names,chat_details), is_global_loading)
                                     for(chat_model in chat_list.history)
                                     {
                                          mutable_chat_map[chat_details.chat_uuid]?.addChat(chat_model)
@@ -1010,33 +1024,299 @@ override fun chatHistoryHandler(response_mdl: ResponseModel )
         //System.out.println("chat list: "+summary_name+ " at "+summary_time);
         }
     }
+    is_global_loading.value = false
+    is_chats_loading.value = false
 }
 
 override fun recordHandler(response_mdl: ResponseModel)
 {
+
     var record_details: RecordDetails = RecordDetails.deJson(response_mdl.meta_data as LinkedHashMap<String, String>)
     mutable_records_map[record_details.record_uuid] = record_details
+    var status_msg = response_mdl.status_msg
+    global_msg.value = status_msg
+    is_global_loading.value = false
     
 }
+override fun labtestHandler(response_mdl: ResponseModel)
+{
+
+        var labtest_details: LabTestDetails = LabTestDetails.deJson(response_mdl.meta_data as LinkedHashMap<String, String>)
+        mutable_labtests_map[labtest_details.labtest_uuid] = labtest_details
+        var status_msg = response_mdl.status_msg
+        global_msg.value = status_msg
+        is_global_loading.value = false
+
+    }
 
 override fun prescriptionHandler(response_mdl: ResponseModel)
 {
+
     var prescription_details: PrescriptionDetails = PrescriptionDetails.deJson(response_mdl.meta_data as LinkedHashMap<String, String>)
     mutable_prescriptions_map[prescription_details.prescription_id] = prescription_details
+    var status_msg = response_mdl.status_msg
+    global_msg.value = status_msg
+    is_global_loading.value = false
+
+
 }
 
 override fun diagnosisHandler(response_mdl: ResponseModel)
 {
+
     var diagnosis_details: DiagnosisDetails = DiagnosisDetails.deJson(response_mdl.meta_data as LinkedHashMap<String, String>)
     mutable_diagnoses_map[diagnosis_details.diagnosis_uuid] = diagnosis_details
+    is_global_loading.value = false
 }
 
 override fun orderHandler(response_mdl: ResponseModel)
 {
+    is_global_loading.value = false
     var order_details: OrderDetails = OrderDetails.deJson(response_mdl.meta_data as LinkedHashMap<String, String>)
+    var status_msg = response_mdl.status_msg
+    global_msg.value = status_msg
     mutable_orders_map[order_details.order_uuid] = order_details
     
 }
+
+    /**
+     * Loading View
+     */
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun BoxScope.chatsloaderUI()
+    {
+
+        /*AlertDialog(
+            onDismissRequest = {
+                //chatbox_nav_ctrl.navigate(MainParams.DoctorViewScreens.CHATBOX_MAIN.name)
+                is_global_loading.value = false
+                global_msg.value = ""
+            },
+            properties = DialogProperties(dismissOnClickOutside = true, dismissOnBackPress = true),
+            modifier = Modifier.background(color = Color.Black),
+
+            )
+
+        {*/
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        Color.Black,
+                        Color.Black
+                    ),
+                    Offset.Zero,
+                    Offset.Infinite,
+                    TileMode.Repeated
+                ), shape = RoundedCornerShape(8.dp), alpha = 0.8f
+            )
+            .clickable(enabled = true) {
+
+            }, contentAlignment = Alignment.Center)
+        {
+            Column( modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .fillMaxHeight(0.2f)
+                .align(alignment = Alignment.Center)//place this layout at the center of the parent
+                .background(
+                    Color(
+                        2, //transparency
+                        26, //red value
+                        150, //green value
+                        255 //blue value
+                    ), shape = RoundedCornerShape(20.dp)
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+
+                )
+            {
+                Row(modifier = Modifier.background(Color.Transparent))
+                {
+                    Icon(
+                        Icons.Filled.Biotech,
+                        contentDescription = "alert message icon",
+                        tint = Color.White
+                    )
+                    showText(text = "Edoctor ")
+                }
+
+                if(is_chats_loading.value == false)
+                {
+
+                    showText(text = "finished loading chats")
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Black,
+                            disabledContainerColor = Color.Gray
+                        ),
+                        modifier = Modifier
+                            .padding(top = 5.dp),
+                        //.align(alignment = Alignment.CenterVertically),
+                        onClick = { /*TODO*/
+
+                            is_chats_loading.value = false
+
+
+
+                        })
+                    {
+                        showText("OKAY")
+                    }
+                }
+                else{
+                    showText(text = "Please Wait ... ")
+                    Box(modifier = Modifier
+                        .padding(top = 2.dp)
+                        .align(Alignment.CenterHorizontally),contentAlignment = Alignment.Center) {
+                        MainComposables().showLoadingPulse()
+                        Button(
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Black,
+                                disabledContainerColor = Color.Gray
+                            ),
+                            modifier = Modifier
+                                .padding(top = 5.dp),
+                            //.align(alignment = Alignment.CenterVertically),
+                            onClick = { /*TODO*/
+
+                                is_chats_loading.value = false
+
+
+
+                            })
+                        {
+                            showText("CANCEL")
+                        }
+                    }
+                }
+
+            }
+        }
+
+
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun BoxScope.loaderUI()
+    {
+
+        /*AlertDialog(
+            onDismissRequest = {
+                //chatbox_nav_ctrl.navigate(MainParams.DoctorViewScreens.CHATBOX_MAIN.name)
+                is_global_loading.value = false
+                global_msg.value = ""
+            },
+            properties = DialogProperties(dismissOnClickOutside = true, dismissOnBackPress = true),
+            modifier = Modifier.background(color = Color.Black),
+
+            )
+
+        {*/
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        Color.Black,
+                        Color.Black
+                    ),
+                    Offset.Zero,
+                    Offset.Infinite,
+                    TileMode.Repeated
+                ), shape = RoundedCornerShape(8.dp), alpha = 0.8f
+            )
+            .clickable(enabled = true) {
+
+            }, contentAlignment = Alignment.Center)
+        {
+            Column( modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .fillMaxHeight(0.2f)
+                .align(alignment = Alignment.Center)//place this layout at the center of the parent
+                .background(
+                    Color(
+                        2, //transparency
+                        26, //red value
+                        150, //green value
+                        255 //blue value
+                    ), shape = RoundedCornerShape(20.dp)
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+
+                )
+            {
+                Row(modifier = Modifier.background(Color.Transparent))
+                {
+                    Icon(
+                        Icons.Filled.Biotech,
+                        contentDescription = "alert message icon",
+                        tint = Color.White
+                    )
+                    showText(text = "Edoctor ")
+                }
+
+                if(global_msg.value.length>0)
+                {
+
+                    showText(text = global_msg.value)
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Black,
+                            disabledContainerColor = Color.Gray
+                        ),
+                        modifier = Modifier
+                            .padding(top = 5.dp),
+                        //.align(alignment = Alignment.CenterVertically),
+                        onClick = { /*TODO*/
+
+                            is_global_loading.value = false
+                            global_msg.value = ""
+
+
+                        })
+                    {
+                        showText("OKAY")
+                    }
+                }
+                else{
+                    showText(text = "Please Wait ... ")
+                    Box(modifier = Modifier
+                        .padding(top = 2.dp)
+                        .align(Alignment.CenterHorizontally),contentAlignment = Alignment.Center) {
+                        MainComposables().showLoadingPulse()
+                        Button(
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Black,
+                                disabledContainerColor = Color.Gray
+                            ),
+                            modifier = Modifier
+                                .padding(top = 5.dp),
+                            //.align(alignment = Alignment.CenterVertically),
+                            onClick = { /*TODO*/
+
+                                is_global_loading.value = false
+                                global_msg.value = ""
+
+
+                            })
+                        {
+                            showText("CANCEL")
+                        }
+                    }
+                }
+
+            }
+        }
+
+
+    }
+
+
 
     
 }

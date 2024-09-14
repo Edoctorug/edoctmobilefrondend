@@ -127,6 +127,7 @@ class PatientComposables {
     lateinit var hospitalman: MutableState<Hospitalman>
     lateinit var specialities: Array<String>
     lateinit var user_matched: MutableState<Boolean>
+    lateinit var is_global_loading: MutableState<Boolean>
 
     lateinit var main_hospital_man: Hospitalman;// = //Hospitalman(hospital_url,hospital_port)
     var this_ws_listener: WSmanCB = WSmanCB() //web socket listener
@@ -206,8 +207,10 @@ class PatientComposables {
         main_nav_ctrl = rememberNavController()
         active_wsrouterx = WSRouterX(chats,result_msg,chat_loading_fin)
         this_ws_listener.setActiveRouter(active_wsrouterx)
-
-        appointments_composable = AppointmentsComposable("patient",main_nav_ctrl,appointments_holder)
+        is_global_loading = remember {
+            mutableStateOf(false)
+        }
+        appointments_composable = AppointmentsComposable("patient",main_nav_ctrl,appointments_holder, is_global_loading)
         /*
         LaunchedEffect(Unit){
             scroll_state.scrollTo(100)
@@ -1132,8 +1135,8 @@ class PatientComposables {
             {
                 Icon(
                     Icons.Outlined.Face, contentDescription = "", tint = Color.White, modifier = Modifier
-                    .size(18.dp)
-                    .padding(top = 1.dp, start = 8.dp, bottom = 3.dp)
+                        .size(18.dp)
+                        .padding(top = 1.dp, start = 8.dp, bottom = 3.dp)
                 )
                 Row()
                 {
@@ -1182,8 +1185,8 @@ class PatientComposables {
             {
                 Icon(
                     Icons.Filled.Biotech, contentDescription = "", tint = Color.White, modifier = Modifier
-                    .size(19.dp)
-                    .padding(top = 3.dp, start = 8.dp)
+                        .size(19.dp)
+                        .padding(top = 3.dp, start = 8.dp)
                 )
                 Row()
                 {
