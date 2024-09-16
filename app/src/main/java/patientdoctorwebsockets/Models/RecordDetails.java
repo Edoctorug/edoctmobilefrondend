@@ -7,13 +7,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 public class RecordDetails 
 {
-    public String record_title;
-    public String record_for;
-    public String record_author;
-    public String record_uuid;
+    public String record_title = "";
+    public String record_for = "";
+    public String record_author = "";
+    public String record_uuid = "";
     public String record_time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MMM/yyyy HH:mm:ss a")); // get the current date and time when
-    public String record_date;
-    public String record_details;
+    public String record_date = "";
+    public String record_details = "";
     public String toJson()
     {
         ObjectMapper this_mapper = new ObjectMapper();

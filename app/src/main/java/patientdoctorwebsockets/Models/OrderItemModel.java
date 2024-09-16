@@ -14,8 +14,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 
 public class OrderItemModel 
 {
-    public String item_sku;
-    public int item_quantity;
+    public String item_sku = "";
+    public int item_quantity = 0;
     public String item_owner = "";
 
     @JsonCreator

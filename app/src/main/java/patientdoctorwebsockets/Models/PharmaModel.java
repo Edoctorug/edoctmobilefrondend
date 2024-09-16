@@ -7,10 +7,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 public class PharmaModel 
 {
-    public String pharma_names;
-    public String pharma_uuid;
-    public String pharma_owner;
-    public String pharma_address;
+    public String pharma_names = "";
+    public String pharma_uuid = "";
+    public String pharma_owner = "";
+    public String pharma_address = "";
 
     public String toJson()
     {

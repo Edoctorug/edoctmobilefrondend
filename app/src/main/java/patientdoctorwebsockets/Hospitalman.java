@@ -545,6 +545,10 @@ public class Hospitalman
         return false;
     }
 
+    public void stop(){
+        hospital_Client.closeHttpman();
+    }
+
     public HttpCookieJar getCookieJar()
     {
         return hospital_Client.getCookieJar();

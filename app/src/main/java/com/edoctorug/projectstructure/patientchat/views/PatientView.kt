@@ -132,6 +132,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import com.edoctorug.projectstructure.patientchat.ChatSummaryModel
 import com.edoctorug.projectstructure.patientchat.HospitalManSingleton
 import com.edoctorug.projectstructure.patientchat.composables.AppointmentsComposable
@@ -187,7 +188,7 @@ class PatientView : ComponentActivity() {
     lateinit var chat_loading_fin: MutableState<Boolean>
 
     lateinit var show_date_picker: MutableState<Boolean>
-
+    lateinit var is_ws_active: MutableState<Boolean>
     lateinit var show_side_menu: MutableState<Boolean>
     lateinit var active_wsrouterx: WSRouterX
     //lateinit var hospital_man: Hospital
@@ -268,6 +269,7 @@ class PatientView : ComponentActivity() {
             //chat_loading_fin = remember {mutableStateOf(false)}
             mutable_chat_map = remember {mutableStateMapOf()}
             show_date_picker = remember {mutableStateOf(false)}
+            is_ws_active = remember {mutableStateOf(true)}
 
             show_side_menu = remember {mutableStateOf(false)}
 
@@ -388,7 +390,7 @@ class PatientView : ComponentActivity() {
         //mutable list of current chat objects
         var scroll_state = rememberScrollState() //get a sctate of the scroll
         main_nav_ctrl = rememberNavController()
-        active_wsrouterx = WSRouterX(chats,result_msg,chat_loading_fin,is_global_loading,global_msg)
+        active_wsrouterx = WSRouterX(is_ws_active,chats,result_msg,chat_loading_fin,is_global_loading,global_msg)
         this_ws_listener.setActiveRouter(active_wsrouterx)
 
         active_wsrouterx.setDataHolders(appointments_holder,mutable_prescriptions_map,mutable_orders_map,mutable_records_map,mutable_diagnoses_map,mutable_labtests_map,mutable_chats_map)
@@ -468,6 +470,11 @@ class PatientView : ComponentActivity() {
                     if ((is_global_loading.value==true) or (global_msg.value.length>0)){
                         loaderUI()
                     }
+                    if(is_ws_active.value == false){
+                        failureUI();
+                    }
+
+
 
 
             }
@@ -669,15 +676,23 @@ class PatientView : ComponentActivity() {
             )
 
         {*/
-        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight().background(Brush.linearGradient(listOf(
-            Color.Black,
-            Color.Black
-        ),
-            Offset.Zero,
-            Offset.Infinite,
-            TileMode.Repeated), shape = RoundedCornerShape(8.dp),alpha = 0.8f).clickable(enabled=true){
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        Color.Black,
+                        Color.Black
+                    ),
+                    Offset.Zero,
+                    Offset.Infinite,
+                    TileMode.Repeated
+                ), shape = RoundedCornerShape(8.dp), alpha = 0.8f
+            )
+            .clickable(enabled = true) {
 
-        }, contentAlignment = Alignment.Center)
+            }, contentAlignment = Alignment.Center)
         {
             Column( modifier = Modifier
                 .fillMaxWidth(0.5f)
@@ -2343,6 +2358,109 @@ class PatientView : ComponentActivity() {
                 //    }
             }
         )
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun BoxScope.failureUI()
+    {
+
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        Color.Black,
+                        Color.Black
+                    ),
+                    Offset.Zero,
+                    Offset.Infinite,
+                    TileMode.Repeated
+                ), shape = RoundedCornerShape(8.dp), alpha = 0.8f
+            )
+            .clickable(enabled = true) {
+
+            }, contentAlignment = Alignment.Center)
+        {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .fillMaxHeight(0.4f)
+                    .align(alignment = Alignment.Center)//place this layout at the center of the parent
+                    .background(
+                        Color(
+                            2, //transparency
+                            26, //red value
+                            150, //green value
+                            255 //blue value
+                        ), shape = RoundedCornerShape(20.dp)
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+
+                )
+            {
+                Row(modifier = Modifier.background(Color.Transparent))
+                {
+                    Icon(
+                        Icons.Filled.Biotech,
+                        contentDescription = "alert message icon",
+                        tint = Color.White
+                    )
+                    showText(text = "Edoctor Failed ")
+                }
+
+                showText(text = "Socket Closed")
+                Row(modifier = Modifier.background(Color.Transparent))
+                {
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Black,
+                            disabledContainerColor = Color.Gray
+                        ),
+                        modifier = Modifier
+                            .padding(top = 5.dp),
+                        //.align(alignment = Alignment.CenterVertically),
+                        onClick = { /*TODO*/
+
+                            is_global_loading.value = false
+                            global_msg.value = ""
+
+
+                        })
+                    {
+                        showText("Continue")
+                    }
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Black,
+                            disabledContainerColor = Color.Gray
+                        ),
+                        modifier = Modifier
+                            .padding(top = 5.dp),
+                        //.align(alignment = Alignment.CenterVertically),
+                        onClick = { /*TODO*/
+
+                            HospitalManSingleton.resetInstance()
+                            ContextCompat.startActivity(
+                                this_context,
+                                Intent(this_context, MainActivity::class.java),
+                                null
+                            )
+
+
+                        })
+                    {
+                        showText("Re Auth")
+                    }
+
+
+
+                }
+            }
+        }
+
+
     }
 
 }

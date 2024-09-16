@@ -7,13 +7,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 public class PrescriptionDetails 
 {
-    public String prescribed_for;
-    public String prescribed_by;
-    public String prescription_id;
-    public String prescription_date;
-    public String prescription_dosage;
-    public String prescription_medicine;
-    public String prescription_note;
+    public String prescribed_for= "";
+    public String prescribed_by = "";
+    public String prescription_id = "";
+    public String prescription_date = "";
+    public String prescription_dosage = "";
+    public String prescription_medicine = "";
+    public String prescription_note = "";
     
     public String toJson()
     {

@@ -7,9 +7,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 public class ChatDetails 
 {
-    public String full_names;
-    public String assigned_patient;
-    public String chat_uuid;
+    public String full_names = "";
+    public String assigned_patient = "";
+    public String chat_uuid = "";
     public String chat_time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MMM/yyyy HH:mm:ss a")); // get the current date and time when
     public String toJson()
     {

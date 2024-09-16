@@ -161,6 +161,7 @@ import kotlin.collections.mutableMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.core.content.ContextCompat.startActivity
+import okhttp3.Response
 
 class DoctorComposables(): WSRouter()
 {
@@ -208,7 +209,7 @@ class DoctorComposables(): WSRouter()
     lateinit var is_global_loading: MutableState<Boolean>
     lateinit var global_msg: MutableState<String>
     lateinit var is_chats_loading: MutableState<Boolean>
-
+    lateinit var is_ws_active: MutableState<Boolean>
 
     lateinit var appointments_composable: AppointmentsComposable
     lateinit var records_composable: RecordsComposable
@@ -273,6 +274,7 @@ class DoctorComposables(): WSRouter()
 
         coroutineScope =  rememberCoroutineScope()
         show_response_window = remember{ mutableStateOf(false) }
+        is_ws_active = remember{ mutableStateOf(true) }
         is_chats_loading = remember{ mutableStateOf(false) }
         show_chat_request = remember{ mutableStateOf(false)}
         main_context = LocalContext.current
@@ -291,9 +293,9 @@ class DoctorComposables(): WSRouter()
 
             main_hospital_man.getChatHistory()
 
-            main_hospital_man.getRecords()
-            main_hospital_man.getAppointments()
-            main_hospital_man.getPrescriptions()
+            //main_hospital_man.getRecords()
+            //main_hospital_man.getAppointments()
+            //main_hospital_man.getPrescriptions()
             //NetworkUtils().xwslogin(this_ws_listener,doctor_viewmodel)
             //doctor_viewmodel.wslogin(this_ws_listener)
             //doctor_viewmodel.printCookies()
@@ -312,7 +314,10 @@ class DoctorComposables(): WSRouter()
             if (is_chats_loading.value == true){
                 chatsloaderUI()
             }
-            if (is_global_loading.value == true){
+            /*if (is_global_loading.value == true){
+                loaderUI()
+            }*/
+            if ((is_global_loading.value==true) or (global_msg.value.length>0)){
                 loaderUI()
             }
             if((show_response_window.value == true))
@@ -324,6 +329,9 @@ class DoctorComposables(): WSRouter()
             if(show_chat_request.value == true)
             {
                 ChatRequestWindow()
+            }
+            if(is_ws_active.value == false){
+                failureUI()
             }
             //showText("hello")
         }
@@ -522,7 +530,7 @@ class DoctorComposables(): WSRouter()
         TopAppBar(//top app bar
             title = {
                 Text(
-                    "Hello Word", //greeting text
+                    "Hello\n$this_doctor_names", //greeting text
                     style = TextStyle(
                         color=Color.White, //set font color to white
                         fontSize = TextUnit(13f, TextUnitType.Sp), //set size of the font to 13
@@ -540,7 +548,7 @@ class DoctorComposables(): WSRouter()
                 .height(50.dp) //height of the top app bar to 35dp
                 .shadow(elevation = 10.dp), //elevation of the top app bar from the main app layout
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(11, 65, 156, 255) //container color of the top app bar
+                containerColor = Color(1, 2, 75, 255) //container color of the top app bar
             ),
             actions = {
                 
@@ -616,8 +624,13 @@ class DoctorComposables(): WSRouter()
             Button(
                     onClick = {
                         //show_date_picker.value = true
+
                         show_side_menu.value = false
                         home_nav_ctrl.navigate(DoctorViewScreens.APPOINTMENTS.name)
+                        is_global_loading.value = true
+                        GlobalScope.launch{
+                            main_hospital_man.getAppointments()
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
@@ -628,13 +641,17 @@ class DoctorComposables(): WSRouter()
                 showText("Appointments")
             }
             /**
-            *Order lab test button
+            *Patient Records button
             */
             Button(
                     onClick = {
                         //show_date_picker.value = true
                         show_side_menu.value = false
                         home_nav_ctrl.navigate(DoctorViewScreens.RECORDS.name)
+                        is_global_loading.value = true
+                        GlobalScope.launch{
+                            main_hospital_man.getRecords()
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
@@ -646,13 +663,17 @@ class DoctorComposables(): WSRouter()
             }
 
             /**
-            *Save Patients Record
+            *Diagnoses results button
             */
             Button(
                     onClick = {
                         //show_date_picker.value = true
                         show_side_menu.value = false
                         home_nav_ctrl.navigate(DoctorViewScreens.DIAGNOSES.name)
+                        is_global_loading.value = true
+                        GlobalScope.launch{
+                            main_hospital_man.getDiagnoses()
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
@@ -664,13 +685,18 @@ class DoctorComposables(): WSRouter()
             }
 
             /**
-            *Order Medicine
+            *Get Prescriptions button
             */
 
             Button(
                     onClick = {
                         //show_date_picker.value = true
+                        show_side_menu.value = false
                         home_nav_ctrl.navigate(DoctorViewScreens.PRESCRIPTIONS.name)
+                        is_global_loading.value = true
+                        GlobalScope.launch{
+                            main_hospital_man.getPrescriptions()
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
@@ -683,7 +709,7 @@ class DoctorComposables(): WSRouter()
 
 
             /**
-            *close chat button
+            *Account Settings button
             */
             Button(
                     onClick = {
@@ -708,6 +734,7 @@ class DoctorComposables(): WSRouter()
                                     //startActivity(Intent(this_context,MainActivity::class.java))
                                     show_side_menu.value = false
                                     HospitalManSingleton.resetInstance()
+
                                     startActivity(main_context,Intent(main_context,MainActivity::class.java),null)
                               },
                     colors = ButtonDefaults.buttonColors(
@@ -984,7 +1011,16 @@ override fun matchHandler(response_mdl: ResponseModel)
     */
     show_chat_request.value = true
 }
+override fun failureHandler(response: Response?){
+        if(is_ws_active!=null)
+        {
+            is_ws_active.value = false
+        }
+        else{
+            startActivity(main_context,Intent(main_context,MainActivity::class.java),null)
+        }
 
+    }
 override fun msgHandler(response_mdl: ResponseModel )
 {
         super.msgHandler(response_mdl);
@@ -1051,15 +1087,19 @@ override fun labtestHandler(response_mdl: ResponseModel)
 
 override fun prescriptionHandler(response_mdl: ResponseModel)
 {
-
+    Log.i("Prescription handler: ", "gotten new prescription")
     var prescription_details: PrescriptionDetails = PrescriptionDetails.deJson(response_mdl.meta_data as LinkedHashMap<String, String>)
     mutable_prescriptions_map[prescription_details.prescription_id] = prescription_details
     var status_msg = response_mdl.status_msg
     global_msg.value = status_msg
+
     is_global_loading.value = false
 
 
 }
+
+
+
 
 override fun diagnosisHandler(response_mdl: ResponseModel)
 {
@@ -1077,6 +1117,121 @@ override fun orderHandler(response_mdl: ResponseModel)
     global_msg.value = status_msg
     mutable_orders_map[order_details.order_uuid] = order_details
     
+}
+
+
+
+
+    override fun appointmentsHandler(response_mdl: ResponseModel)
+    {
+        Log.i("Appointment handler: ", "gotten new appointment")
+
+        var status_code = response_mdl.status_code
+        var status_msg = response_mdl.status_msg
+        if (status_code==200)
+        {
+            var meta_data = response_mdl.meta_data
+            var appointment_history: AppointmentsHistory = AppointmentsHistory.deJson(meta_data as LinkedHashMap<*, *>)
+            var all_appointments  = appointment_history.appointments_history
+
+            for(appointment in all_appointments){
+                var auuid = appointment.appointment_uuid
+                Log.i("Using appointment uuid", auuid)
+                mutable_appointments_map.put(auuid,appointment)
+            }
+            //var appointment_details: AppointmentDetails = AppointmentDetails.deJson(response_mdl.meta_data as LinkedHashMap<String, String>)
+            //mutable_appointments_map[appointment_details.appointment_id] = appointment_details
+        }
+
+        global_msg.value = status_msg
+
+        is_global_loading.value = false
+
+
+    }
+
+    override fun recordsHandler(response_mdl: ResponseModel)
+    {
+        Log.i("Record handler: ", "gotten new record")
+
+        var status_code = response_mdl.status_code
+        var status_msg = response_mdl.status_msg
+        if (status_code==200)
+        {
+            var meta_data = response_mdl.meta_data
+            var record_history: RecordsHistory = RecordsHistory.deJson(meta_data as LinkedHashMap<*, *>)
+            var all_records  = record_history.records_history
+
+            for(record in all_records){
+                var record_uuid = record.record_uuid
+                Log.i("Using record uuid", record_uuid)
+                mutable_records_map.put(record_uuid,record)
+            }
+            //var record_details: RecordDetails = RecordDetails.deJson(response_mdl.meta_data as LinkedHashMap<String, String>)
+            //mutable_records_map[record_details.record_id] = record_details
+        }
+
+        global_msg.value = status_msg
+
+        is_global_loading.value = false
+
+
+    }
+
+    override fun diagnosesHandler(response_mdl: ResponseModel)
+    {
+        Log.i("Diagnosis handler: ", "gotten new diagnosis")
+
+        var status_code = response_mdl.status_code
+        var status_msg = response_mdl.status_msg
+        if (status_code==200)
+        {
+            var meta_data = response_mdl.meta_data
+            var diagnoses_history: DiagnosesHistory = DiagnosesHistory.deJson(meta_data as LinkedHashMap<*, *>)
+            var all_diagnoses  = diagnoses_history.diagnoses_history
+
+            for(diagnosis in all_diagnoses){
+                var diagnosis_uuid = diagnosis.diagnosis_uuid
+                Log.i("Using diagnosis uuid", diagnosis_uuid)
+                mutable_diagnoses_map.put(diagnosis_uuid,diagnosis)
+            }
+            //var record_details: RecordDetails = RecordDetails.deJson(response_mdl.meta_data as LinkedHashMap<String, String>)
+            //mutable_records_map[record_details.record_id] = record_details
+        }
+
+        global_msg.value = status_msg
+
+        is_global_loading.value = false
+
+
+    }
+
+override fun prescriptionsHandler(response_mdl: ResponseModel)
+{
+    Log.i("Prescription handler: ", "gotten new prescription")
+
+    var status_code = response_mdl.status_code
+    var status_msg = response_mdl.status_msg
+    if (status_code==200)
+    {
+        var meta_data = response_mdl.meta_data
+        var prescription_history: PrescriptionsHistory = PrescriptionsHistory.deJson(meta_data as LinkedHashMap<*, *>)
+        var all_prescriptions  = prescription_history.prescriptions_history
+
+        for(prescription in all_prescriptions){
+            var puuid = prescription.prescription_id
+            Log.i("Using prescription uuid", puuid)
+            mutable_prescriptions_map.put(puuid,prescription)
+        }
+        //var prescription_details: PrescriptionDetails = PrescriptionDetails.deJson(response_mdl.meta_data as LinkedHashMap<String, String>)
+        //mutable_prescriptions_map[prescription_details.prescription_id] = prescription_details
+    }
+
+    global_msg.value = status_msg
+
+    is_global_loading.value = false
+
+
 }
 
     /**
@@ -1309,6 +1464,102 @@ override fun orderHandler(response_mdl: ResponseModel)
                         }
                     }
                 }
+
+            }
+        }
+
+
+    }
+
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun BoxScope.failureUI()
+    {
+
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        Color.Black,
+                        Color.Black
+                    ),
+                    Offset.Zero,
+                    Offset.Infinite,
+                    TileMode.Repeated
+                ), shape = RoundedCornerShape(8.dp), alpha = 0.8f
+            )
+            .clickable(enabled = true) {
+
+            }, contentAlignment = Alignment.Center)
+        {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .fillMaxHeight(0.4f)
+                    .align(alignment = Alignment.Center)//place this layout at the center of the parent
+                    .background(
+                        Color(
+                            2, //transparency
+                            26, //red value
+                            150, //green value
+                            255 //blue value
+                        ), shape = RoundedCornerShape(20.dp)
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+
+                )
+            {
+                Row(modifier = Modifier.background(Color.Transparent))
+                {
+                    Icon(
+                        Icons.Filled.Biotech,
+                        contentDescription = "alert message icon",
+                        tint = Color.White
+                    )
+                    showText(text = "Edoctor Failed ")
+                }
+
+                showText(text = "Socket Closed")
+
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Black,
+                            disabledContainerColor = Color.Gray
+                        ),
+                        modifier = Modifier
+                            .padding(top = 5.dp),
+                        //.align(alignment = Alignment.CenterVertically),
+                        onClick = { /*TODO*/
+
+                            is_global_loading.value = false
+                            global_msg.value = ""
+
+
+                        })
+                    {
+                        showText("Continue")
+                    }
+                    Button(
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Black,
+                                disabledContainerColor = Color.Gray
+                            ),
+                            modifier = Modifier
+                                .padding(top = 5.dp),
+                            //.align(alignment = Alignment.CenterVertically),
+                            onClick = { /*TODO*/
+
+                                HospitalManSingleton.resetInstance()
+                                startActivity(main_context,Intent(main_context,MainActivity::class.java),null)
+
+
+                            })
+                        {
+                            showText("Re Auth")
+                        }
 
             }
         }

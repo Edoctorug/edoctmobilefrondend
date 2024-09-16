@@ -51,7 +51,9 @@ public class WSmanCB extends WebSocketListener //Websocket listener
     {
         // TODO Auto-generated method stub
         super.onFailure(webSocket, t, response);
-        
+
+        webSocket.cancel();
+        ws_router.failureHandler(response);
         System.out.println("\t\tSocket failed: "+t.getMessage());
     }
 

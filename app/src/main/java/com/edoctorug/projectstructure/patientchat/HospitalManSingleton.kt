@@ -17,6 +17,7 @@ object HospitalManSingleton
     }
 
     fun resetInstance(){
+        hospitalman_instance?.stop();
         hospitalman_instance = Hospitalman(ConnectionParams.hospital_url,ConnectionParams.hospital_port)
     }
 }

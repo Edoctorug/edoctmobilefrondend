@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import kotlin.jvm.internal.markers.KMutableList;
+import okhttp3.Response;
 import patientdoctorwebsockets.Models.AppointmentDetails;
 import patientdoctorwebsockets.Models.AppointmentsHistory;
 import patientdoctorwebsockets.Models.ChatDetails;
@@ -51,6 +52,7 @@ public class WSRouterX extends WSRouter
     //SnapshotStateMap<String, List< patientdoctorwebsockets.Models.ChatModel>> chat_history_map;
     NavHostController active_nav_ctrl;
     MutableState<Boolean> chat_loader_fin;
+    MutableState<Boolean> ws_active;
 
     MutableState<Boolean> is_global_loading; //dialog box controller
     public Object chatDetails;
@@ -111,6 +113,17 @@ public class WSRouterX extends WSRouter
         chat_loader_fin = xactive_navCtrl;
         is_global_loading = dialog_state;
         global_msg = xglobal_msg;
+
+    }
+
+    public WSRouterX(MutableState<Boolean> is_ws_active,List<ChatModel> chat_models, MutableState<String> xresults_string,MutableState<Boolean> xactive_navCtrl, MutableState<Boolean> dialog_state, MutableState<String> xglobal_msg)
+    {
+        chat_lists = chat_models;
+        results_string = xresults_string;
+        chat_loader_fin = xactive_navCtrl;
+        is_global_loading = dialog_state;
+        global_msg = xglobal_msg;
+        ws_active = is_ws_active;
     }
 
     /**
@@ -124,6 +137,8 @@ public class WSRouterX extends WSRouter
         //results_string.setValue(responseModel.status_msg);
 
     }
+
+
 
     /**
      * Handles the appointment response.
@@ -227,6 +242,22 @@ public class WSRouterX extends WSRouter
         String status_msg = responseModel.status_msg;
         is_global_loading.setValue(false);
         global_msg.setValue(status_msg);
+
+    }
+
+
+    /**
+     * Handles the failure response.
+     * @param response The response model containing failure information.
+     */
+    @Override
+    public void failureHandler(Response response){
+        //response.code();
+        super.failureHandler(response);
+        if(ws_active!=null)
+        {
+            ws_active.setValue(false);
+        }
 
     }
 

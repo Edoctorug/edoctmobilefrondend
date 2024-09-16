@@ -25,8 +25,8 @@ public class ChatModel
 {
     public boolean msg_owner; //0 for mine 1 for another
     public boolean msg_type; //0 for text 1 for media message
-    public String msg_data;
-    public String msg_timestamp;
+    public String msg_data = "";
+    public String msg_timestamp = "";
     
     @JsonCreator
     public ChatModel(@JsonProperty("msg_data") String data,@JsonProperty("msg_owner") boolean owner, @JsonProperty("msg_type")boolean type)

@@ -33,6 +33,11 @@ public class Httpman {
         
     }
 
+    public void closeHttpman(){
+        http_wsman.stop();
+
+    }
+
     public Httpman(String url)//contructor with endpoint url and port number
     {
         http_url = url;

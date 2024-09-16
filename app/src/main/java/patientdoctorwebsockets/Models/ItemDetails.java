@@ -7,11 +7,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 public class ItemDetails 
 {
-    public String item_name;
-    public String item_sku;
-    public String item_price;
-    public String item_description;
-    public String item_pic_url;
+    public String item_name = "";
+    public String item_sku = "";
+    public String item_price = "";
+    public String item_description = "";
+    public String item_pic_url = "";
 
     
     public String toJson()

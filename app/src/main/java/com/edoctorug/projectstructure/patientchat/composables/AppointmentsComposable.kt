@@ -282,8 +282,7 @@ class AppointmentsComposable(private val xthis_role: String,private val tmp_home
                                                 if (tmp_appointment_details != null) tmp_appointment_details else null //temporarily store the names in the appointment
 
                                             if (appointment_details != null) {
-                                                var appointment_names =
-                                                    appointment_details.appointment_with
+                                                var appointment_names = if (this_role == "patient") appointment_details.appointment_with else appointment_details.appointment_author
                                                 var appointment_date =
                                                     appointment_details.appointment_time
                                                 MainComposables().AppointmentSummary(
@@ -418,6 +417,7 @@ fun BoxScope.AppointmentDetailsDialog()
     }
     
     var appointment_user_name = active_appointment_details.appointment_with
+    var appointment_author = active_appointment_details.appointment_author
     var appointment_uuid = active_appointment_details.appointment_uuid
     var appointment_time =  active_appointment_details.appointment_time
     var appointment_note =  active_appointment_details.appointment_note
@@ -443,6 +443,7 @@ fun BoxScope.AppointmentDetailsDialog()
             )//Label for this layout
         )
         showText("\tWith: $appointment_user_name")
+        showText("\tAppointment Author: $appointment_author")
         showText("\tAt: $appointment_time")
         showText("\tNotes:\n $appointment_note")
         

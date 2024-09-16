@@ -9,13 +9,13 @@ import java.time.format.DateTimeFormatter;
 import patientdoctorwebsockets.Models.ItemDetails;
 public class OrderDetails 
 {
-    public String order_user_names;
-    public String order_uuid;
+    public String order_user_names = "";
+    public String order_uuid = "";
     public String order_time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MMM/yyyy HH:mm:ss a")); // get the current date and time when
     public ItemDetails order_items[];
-    public String order_total_price;
-    public String order_status;
-    public String order_note;
+    public String order_total_price = "";
+    public String order_status = "";
+    public String order_note = "";
     public String toJson()
     {
         ObjectMapper this_mapper = new ObjectMapper();

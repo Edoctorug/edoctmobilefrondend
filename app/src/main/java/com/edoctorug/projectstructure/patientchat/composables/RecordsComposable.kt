@@ -413,6 +413,7 @@ fun BoxScope.RecordDetailsDialog()
     var record_user_name = active_record_details.record_for
     var record_uuid = active_record_details.record_uuid
     var record_time =  active_record_details.record_time
+    var record_date = active_record_details.record_date
     var record_note =  active_record_details.record_details
     Column(//a column layout in the box layout
             modifier = Modifier
@@ -437,6 +438,7 @@ fun BoxScope.RecordDetailsDialog()
             )//Label for this layout
         )
         showText("\tWith: $record_user_name")
+        showText("\tRecord On: $record_date")
         showText("\tAt: $record_time")
         showText("\tNotes:\n $record_note")
         

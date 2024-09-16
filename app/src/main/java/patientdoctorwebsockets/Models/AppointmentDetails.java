@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 public class AppointmentDetails 
 {
     public String appointment_with = "";
+    public String appointment_author = "";
     public String appointment_uuid = "";
     public String appointment_time = "";
     public String appointment_initial_time = "";
