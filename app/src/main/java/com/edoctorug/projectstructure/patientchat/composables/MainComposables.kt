@@ -4,7 +4,7 @@ import androidx.compose.foundation.Image
 import patientdoctorwebsockets.Models.*
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -182,6 +182,36 @@ class MainComposables
                 {
                     showText("Appointment with: $chat_slave")
                     showText("Appointment On: $chat_date")
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun DoctorSummary(doc_names: String, doc_uname: String,chatfx: () -> Unit)
+    {
+        var btn_state = remember{mutableStateOf(true)}
+        var btn_defaults= ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            disabledContainerColor = Color.DarkGray
+        )
+        Button( onClick = {
+            //btn_state.value = !btn_state.value
+            chatfx()
+        },
+            modifier = Modifier
+                .background(Color(0xff060b2b), RoundedCornerShape(1.dp))
+                .fillMaxWidth(), colors = btn_defaults)
+        {
+            Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+            {
+                Icon(Icons.Filled.CalendarMonth, contentDescription = "calender month", tint = Color.White,modifier = Modifier.size(30.dp))
+                Column()
+                {
+                    Image(Icons.Filled.AccountCircle, contentDescription = "Doctor Account")
+                    showText("Doctor Names: $doc_names")
+                    showText("username: $doc_uname")
                 }
             }
         }

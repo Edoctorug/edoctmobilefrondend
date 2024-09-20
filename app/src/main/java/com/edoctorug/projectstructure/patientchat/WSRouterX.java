@@ -19,6 +19,8 @@ import patientdoctorwebsockets.Models.ChatsHistory;
 import patientdoctorwebsockets.Models.ChatsList;
 import patientdoctorwebsockets.Models.DiagnosesHistory;
 import patientdoctorwebsockets.Models.DiagnosisDetails;
+import patientdoctorwebsockets.Models.DoctorDetails;
+import patientdoctorwebsockets.Models.DoctorsList;
 import patientdoctorwebsockets.Models.LabTestDetails;
 import patientdoctorwebsockets.Models.LabTestsHistory;
 import patientdoctorwebsockets.Models.OrderDetails;
@@ -33,6 +35,7 @@ import com.edoctorug.projectstructure.patientchat.constants.MainParams.DoctorVie
 import com.edoctorug.projectstructure.patientchat.constants.MainParams.PatientViewScreens;
 import com.edoctorug.projectstructure.patientchat.models.ChatCase;
 import com.edoctorug.projectstructure.patientchat.models.XChatCase;
+import com.edoctorug.projectstructure.patientchat.views.PatientView;
 
 public class WSRouterX extends WSRouter
 {
@@ -40,6 +43,7 @@ public class WSRouterX extends WSRouter
     MutableState<String> results_string;
     MutableState<String> global_msg;
 
+    public PatientView patientView;
     public SnapshotStateMap<String, AppointmentDetails> appointment_details;
     public SnapshotStateMap<String, PrescriptionDetails> prescriptions_details;
     public SnapshotStateMap<String, OrderDetails> orders_details;
@@ -98,6 +102,7 @@ public class WSRouterX extends WSRouter
 
     public WSRouterX(List<ChatModel> chat_models, MutableState<String> xresults_string,MutableState<Boolean> xactive_navCtrl, MutableState<Boolean> dialog_state)
     {
+
         chat_lists = chat_models;
         results_string = xresults_string;
         chat_loader_fin = xactive_navCtrl;
@@ -116,6 +121,8 @@ public class WSRouterX extends WSRouter
 
     }
 
+
+
     public WSRouterX(MutableState<Boolean> is_ws_active,List<ChatModel> chat_models, MutableState<String> xresults_string,MutableState<Boolean> xactive_navCtrl, MutableState<Boolean> dialog_state, MutableState<String> xglobal_msg)
     {
         chat_lists = chat_models;
@@ -124,6 +131,17 @@ public class WSRouterX extends WSRouter
         is_global_loading = dialog_state;
         global_msg = xglobal_msg;
         ws_active = is_ws_active;
+    }
+
+    public WSRouterX(PatientView patient_view)
+    {
+        patientView = patient_view;
+        chat_lists = patientView.chats;
+        results_string = patientView.result_msg;// xresults_string;
+        chat_loader_fin = patientView.chat_loading_fin;
+        is_global_loading = patientView.is_global_loading;// dialog_state;
+        global_msg = patientView.global_msg;
+        ws_active = patientView.is_ws_active;
     }
 
     /**
@@ -171,6 +189,50 @@ public class WSRouterX extends WSRouter
         String status_msg = responseModel.status_msg;
         is_global_loading.setValue(false);
         global_msg.setValue(status_msg);
+
+    }
+
+    /**
+     * Handles the appointment response.
+     * @param responseModel The response model containing authentication information.
+     */
+    @Override
+    public void allOnlineHandler(ResponseModel responseModel)
+    {
+        super.allOnlineHandler(responseModel);
+        //results_string.setValue(responseModel.status_msg);
+
+        int status_code = responseModel.status_code;
+        String present_role = "consultant";
+        if(status_code == 200)
+        {
+
+            //AppointmentsHistory appointment_history = AppointmentsHistory.deJson((LinkedHashMap) responseModel.meta_data);
+
+            DoctorsList doctors_list_model = DoctorsList.deJson((LinkedHashMap) responseModel.meta_data);
+            present_role = doctors_list_model.role;
+            DoctorDetails doctors_list[] = doctors_list_model.online_medics;
+            for (DoctorDetails doctorDetails: doctors_list){
+                String doc_uname = doctorDetails.user_name;
+                Log.i("DOCTORS_ONLINE","Doctor_username: "+doc_uname+" with role: "+present_role);
+                patientView.mutable_doctors_map.put(doc_uname,doctorDetails);
+
+            //is_global_loading.setValue(false);
+
+
+
+        }
+
+
+        }
+        else{
+
+        }
+        String status_msg = responseModel.status_msg;
+        is_global_loading.setValue(false);
+        global_msg.setValue(status_msg);
+        patientView.navigator(present_role);
+        //patientView.main_nav_ctrl.navigate(PatientViewScreens.ALL_DOCTORS.name()+"/"+"");
 
     }
 
@@ -470,6 +532,24 @@ public class WSRouterX extends WSRouter
         super.msgHandler(responseModel);
         //results_string.setValue(responseModel.status_msg);
         String str_msg = responseModel.status_msg;
+        ChatDetails chat_details = ChatDetails.deJson((LinkedHashMap) responseModel.meta_data);
+
+        String chat_uuid = chat_details.chat_uuid;
+        Log.i("NEW_CHAT", "chat with: "+chat_uuid);
+        XChatCase chat_case = chat_history_map.get(chat_uuid);
+
+        System.out.println("chat uuid: "+chat_uuid);
+        String doctor_name = chat_details.full_names;
+        String assigned_patient = "You";
+
+
+        XChatCase chatCase = chat_history_map.get(chat_uuid);
+        if(chat_case==null){
+            chat_history_map.put(chat_uuid,new XChatCase(assigned_patient,chat_details));
+        }
+        else{
+            chatCase.getChatList().add(new ChatModel(str_msg,false,1999));
+        }
         chat_lists.add(new ChatModel(str_msg,false,1999));
 
     }
@@ -514,7 +594,11 @@ public class WSRouterX extends WSRouter
         switch(responseModel.status_code)
         {
             case 200:
+
                 chatDetails = responseModel.meta_data;
+                patientView.chat_details = ChatDetails.deJson((LinkedHashMap)chatDetails );
+                String docname = patientView.chat_details.full_names;
+                Log.i("match status", "match with: "+docname);
                 results_string.setValue(responseModel.status_msg);
                 chat_loader_fin.setValue(true);
             case 500:

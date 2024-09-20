@@ -120,6 +120,11 @@ public class WSRouter
         recent_response = responseModel;
     }
 
+    public void allOnlineHandler(ResponseModel responseModel)
+    {
+        recent_response = responseModel;
+    }
+
 
 
     
@@ -198,6 +203,11 @@ public class WSRouter
                 found_online_doc.set(true);
                 chatHistoryHandler(response_model);
                 System.out.println("\t\t Chat History Message: "+status_msg);
+            break;
+            case "all_online":
+                found_online_doc.set(true);
+                allOnlineHandler(response_model);
+                System.out.println("\t\tOnline Users Message: "+status_msg);
             break;
 
             case "records":

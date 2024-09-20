@@ -35,8 +35,9 @@ public interface MainParams
         SPECIALITY,
         CHAT,
         CHAT_LOADER,
+        DOC_LOADER,
         APPOINTMENTS,
-
+        ALL_DOCTORS,
         DIAGNOSES,
 
         PRESCRIPTIONS,

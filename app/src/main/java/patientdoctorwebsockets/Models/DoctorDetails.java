@@ -5,8 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DoctorDetails 
 {
-    String full_names = "";
-    String assigned_patient = "";
+    public String doctor_id = "";
+    public String user_name = "";
+    public String full_names = "";
+    public String assigned_patient = "";
+
+    public String chat_uuid = "";
     public String toJson()
     {
         ObjectMapper this_mapper = new ObjectMapper();

@@ -25,6 +25,7 @@ import patientdoctorwebsockets.Httpman;
 import java.time.LocalTime;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 
 
 //class to handle network requests to the hospital backend
@@ -169,10 +170,36 @@ public class Hospitalman
         hospital_Client.wsSend(ws_chat_data_model_str);
     }
 
+    public void findOnlineDocs()
+    {
+        WSChatDataModel ws_chat_data_model = new WSChatDataModel(); //create chat model
+        ws_chat_data_model.cmd = "get_all_online"; //use the get_online command
+        ws_chat_data_model.message = "consultant"; //dummy message
+
+        String ws_chat_data_model_str = ws_chat_data_model.toJson(); //convert the model to json string
+
+        ////System.out.println(" sending find: "+ ws_chat_data_model_str);
+
+        hospital_Client.wsSend(ws_chat_data_model_str);
+    }
+
     public void findOnlineDoc(String speciality)
     {
         WSChatDataModel ws_chat_data_model = new WSChatDataModel(); //create chat model
         ws_chat_data_model.cmd = "get_online"; //use the get_online command
+        ws_chat_data_model.message = speciality; //dummy message
+
+        String ws_chat_data_model_str = ws_chat_data_model.toJson(); //convert the model to json string
+
+        ////System.out.println(" sending find: "+ ws_chat_data_model_str);
+
+        hospital_Client.wsSend(ws_chat_data_model_str);
+    }
+
+    public void findAllOnlineDocs(String speciality)
+    {
+        WSChatDataModel ws_chat_data_model = new WSChatDataModel(); //create chat model
+        ws_chat_data_model.cmd = "get_all_online"; //use the get_online command
         ws_chat_data_model.message = speciality; //dummy message
 
         String ws_chat_data_model_str = ws_chat_data_model.toJson(); //convert the model to json string
@@ -514,6 +541,18 @@ public class Hospitalman
 
         hospital_Client.wsSend(ws_chat_data_model);
         return false;
+    }
+
+    public void verifyMatch(DoctorDetails doctor_details){
+
+        String assigned_match = doctor_details.user_name;
+        System.out.println("Verifying match with User: "+assigned_match);
+        WSChatDataModel ws_chat_data_model = new WSChatDataModel(); //create chat model
+        ws_chat_data_model.cmd = "verify_match"; //use the get_online command
+        ws_chat_data_model.message = assigned_match; //patient id to match
+        String ws_chat_data_model_str = ws_chat_data_model.toJson();
+        System.out.println("sending verification string: "+ws_chat_data_model_str);
+        hospital_Client.wsSend(ws_chat_data_model_str);
     }
 
     

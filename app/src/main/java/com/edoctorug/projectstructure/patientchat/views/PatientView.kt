@@ -138,6 +138,7 @@ import com.edoctorug.projectstructure.patientchat.HospitalManSingleton
 import com.edoctorug.projectstructure.patientchat.composables.AppointmentsComposable
 import com.edoctorug.projectstructure.patientchat.composables.DiagnosesComposable
 import com.edoctorug.projectstructure.patientchat.composables.DoctorChatView
+import com.edoctorug.projectstructure.patientchat.composables.DoctorsComposable
 import com.edoctorug.projectstructure.patientchat.composables.LabTestsComposable
 import com.edoctorug.projectstructure.patientchat.composables.MainComposables
 import com.edoctorug.projectstructure.patientchat.composables.OrdersComposable
@@ -159,6 +160,8 @@ import patientdoctorwebsockets.Models.PrescriptionDetails
 import patientdoctorwebsockets.Models.RecordDetails
 import java.time.LocalTime
 import com.spr.jetpack_loading.components.indicators.PulsatingDot
+import patientdoctorwebsockets.Models.DoctorDetails
+
 class PatientView : ComponentActivity() {
 
     val hospital_url = ConnectionParams.hospital_url //localhost
@@ -195,7 +198,7 @@ class PatientView : ComponentActivity() {
 
     lateinit var this_context: Context
     lateinit var appointments_composable: AppointmentsComposable
-
+    lateinit var doctors_composable: DoctorsComposable
     lateinit var prescriptions_composable: PrescriptionsComposable
     lateinit var diagnoses_composable: DiagnosesComposable
     lateinit var labtests_composable: LabTestsComposable
@@ -217,6 +220,7 @@ class PatientView : ComponentActivity() {
     lateinit var mutable_labtests_map: SnapshotStateMap<String, LabTestDetails>
     //lateinit var mutable_chats_map: SnapshotStateMap<String, MutableList<ChatModel>>
     lateinit var mutable_chats_map: SnapshotStateMap<String, XChatCase>
+    lateinit var mutable_doctors_map: SnapshotStateMap<String, DoctorDetails>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         var user_names: String? = intent.getStringExtra("user_names")
@@ -265,6 +269,7 @@ class PatientView : ComponentActivity() {
             mutable_prescriptions_map = remember {mutableStateMapOf()}
             mutable_orders_map = remember {mutableStateMapOf()}
             mutable_chats_map = remember {mutableStateMapOf()}
+            mutable_doctors_map = remember {mutableStateMapOf()}
             mutable_labtests_map = remember { mutableStateMapOf() }
             //chat_loading_fin = remember {mutableStateOf(false)}
             mutable_chat_map = remember {mutableStateMapOf()}
@@ -390,7 +395,7 @@ class PatientView : ComponentActivity() {
         //mutable list of current chat objects
         var scroll_state = rememberScrollState() //get a sctate of the scroll
         main_nav_ctrl = rememberNavController()
-        active_wsrouterx = WSRouterX(is_ws_active,chats,result_msg,chat_loading_fin,is_global_loading,global_msg)
+        active_wsrouterx = WSRouterX(this)//WSRouterX(is_ws_active,chats,result_msg,chat_loading_fin,is_global_loading,global_msg)
         this_ws_listener.setActiveRouter(active_wsrouterx)
 
         active_wsrouterx.setDataHolders(appointments_holder,mutable_prescriptions_map,mutable_orders_map,mutable_records_map,mutable_diagnoses_map,mutable_labtests_map,mutable_chats_map)
@@ -398,6 +403,7 @@ class PatientView : ComponentActivity() {
 
 
         appointments_composable = AppointmentsComposable("patient",main_nav_ctrl,appointments_holder,is_global_loading)
+        doctors_composable = DoctorsComposable("consultant",main_nav_ctrl,mutable_doctors_map,is_global_loading)
         records_composable = RecordsComposable("patient",main_nav_ctrl,mutable_records_map,is_global_loading)
         diagnoses_composable = DiagnosesComposable("patient",main_nav_ctrl,mutable_diagnoses_map,is_global_loading)
         labtests_composable = LabTestsComposable("patient",main_nav_ctrl,mutable_labtests_map,is_global_loading)
@@ -617,13 +623,27 @@ class PatientView : ComponentActivity() {
                 }
             }
 
-            composable(PatientViewScreens.SPECIALITY.name)
-            {
+            composable(PatientViewScreens.SPECIALITY.name+"/{loader_type}")
+            {backStackEntry->
                 Box(modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth())
                 {
-                    patientLoader()
+                    var oloader_type = backStackEntry.arguments?.getString("loader_type")
+                    var loader_type = if (oloader_type == null) "match" else oloader_type
+                    patientLoader(loader_type)
+                }
+            }
+
+            composable(PatientViewScreens.ALL_DOCTORS.name+"/{doc_type}")
+            {backStackEntry->
+                Box(modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth())
+                {
+                    var oloader_type = backStackEntry.arguments?.getString("loader_type")
+                    var loader_type = if (oloader_type == null) "consultant" else oloader_type
+                    doctors_composable.Home()
                 }
             }
 
@@ -653,6 +673,40 @@ class PatientView : ComponentActivity() {
                     
                 }
             }
+
+            composable(PatientViewScreens.DOC_LOADER.name)
+            {
+                Box(modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth())
+                {
+                    if(chat_loading_fin.value==false)
+                    {
+                        chatLoader("Fetching doctors, please wait ... ")
+                    }
+                    else
+                    {
+                        chat_details = ChatDetails.deJson(active_wsrouterx.chatDetails as LinkedHashMap<String, String>)
+
+                        if (chat_details!=null){
+                            Log.i("Chat Details","using chat: "+chat_details.chat_uuid)
+                        }
+                        else{
+                            Log.i("Chat_Details","Chat details missing")
+                        }
+
+                        ChatUI(chats, scroll_state)
+                    }
+
+                }
+            }
+
+        }
+    }
+
+    fun navigator(navString: String){
+        runOnUiThread {
+            main_nav_ctrl.navigate(PatientViewScreens.ALL_DOCTORS.name+"/"+navString)
         }
     }
 
@@ -880,7 +934,7 @@ class PatientView : ComponentActivity() {
                                         this_enabled.value = !this_enabled.value
                                        last_enabled = this_enabled
 
-                                        main_nav_ctrl.navigate(PatientViewScreens.SPECIALITY.name)
+                                        main_nav_ctrl.navigate(PatientViewScreens.SPECIALITY.name+"/all_online")
                                       },
                             enabled = (this_enabled.value),
                             colors = ButtonDefaults.buttonColors(
@@ -928,6 +982,74 @@ class PatientView : ComponentActivity() {
                                 )//Label for this layout
                             )
                         }
+
+
+
+                }
+            }
+
+            /**
+             * Automatch doctor Button
+             */
+            item {
+
+                var this_enabled = remember{ mutableStateOf(true) }
+
+
+                Button(
+                    onClick = { /*TODO*/
+                        global_enabled.value = !global_enabled.value
+                        this_enabled.value = !this_enabled.value
+                        last_enabled = this_enabled
+
+                        main_nav_ctrl.navigate(PatientViewScreens.SPECIALITY.name+"/match")
+                    },
+                    enabled = (this_enabled.value),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Black,
+                        disabledContainerColor = Color.DarkGray
+                    ),
+
+                    shape = RoundedCornerShape(4.dp)
+                )
+                {
+                    ConstraintLayout(modifier = Modifier.background(
+                        Color.Transparent,
+
+                        // (2, //transparency 26, //red value 150, //green value 255 //blue value),
+                    )) {
+                        val (icon_ref, text_ref) = createRefs()
+
+                        Icon(   Icons.Filled.Biotech,
+                            contentDescription = "Click Here To Automatch doctor",
+                            tint= Color.White,
+                            modifier = Modifier.constrainAs(icon_ref)
+                            {
+                                top.linkTo(parent.top, margin = 0.dp)
+                            }
+                        )
+
+                        Text( //Automatch Heading
+                            text = "AutoMatch Doctor",
+                            modifier = Modifier
+                                //.padding(10.dp)
+                                .constrainAs(text_ref)
+                                {
+                                    absoluteLeft.linkTo(icon_ref.absoluteLeft, margin = 20.dp)
+                                }
+                            //  .align(alignment = Alignment.CenterHorizontally)
+                            , style = TextStyle(
+                                fontSize = TextUnit(10f, TextUnitType.Sp),
+                                fontStyle = FontStyle.Normal,
+                                color = Color.White,
+                                fontFamily = FontFamily.Monospace,
+                                letterSpacing = TextUnit(
+                                    integerResource(id = R.integer.text_spacing_default).toFloat(),
+                                    TextUnitType.Sp
+                                )
+                            )//Label for this layout
+                        )
+                    }
 
 
 
@@ -1429,7 +1551,7 @@ class PatientView : ComponentActivity() {
     }
 
     @Composable
-    fun BoxScope.chatLoader()
+    fun BoxScope.chatLoader(loading_text: String = "Matching Please Wait ......")
     {
         Column(
             modifier = Modifier
@@ -1439,7 +1561,7 @@ class PatientView : ComponentActivity() {
         {
             
             if ((result_msg.value == "") && (chat_loading_fin.value!=true)){
-                showText(text = "Matching Please Wait ......")
+                showText(text = loading_text)
                 PacmanIndicator(ballDiameter = 10f)
 
                 showText(text = result_msg.value)
@@ -1471,7 +1593,7 @@ class PatientView : ComponentActivity() {
     }
 
     @Composable
-    fun BoxScope.patientLoader()
+    fun BoxScope.patientLoader(loader_type: String)
     {
         var drop_down_scroll_state = rememberScrollState()
         val coroutineScope = rememberCoroutineScope()
@@ -1581,12 +1703,28 @@ class PatientView : ComponentActivity() {
                         disabledContainerColor = Color.DarkGray
                     ),
                     onClick = { /*TODO*/
-                                main_nav_ctrl.navigate(PatientViewScreens.CHAT_LOADER.name)
-                                var login_job = GlobalScope.launch{
 
-                                    //wslogin(active_speciality,global_session_id, main_hospital_man, this_ws_listener)
 
-                                    wsfindDoc(active_speciality,main_hospital_man)
+                                if(loader_type.equals("match")) {
+                                    main_nav_ctrl.navigate(PatientViewScreens.CHAT_LOADER.name)
+                                    Log.i("MATCH_TYPE","USING ONLINE MATCH")
+                                    GlobalScope.launch {
+
+                                        //wslogin(active_speciality,global_session_id, main_hospital_man, this_ws_listener)
+
+                                        wsfindDoc(active_speciality, main_hospital_man)
+                                    }
+                                }
+                                else{
+                                    main_nav_ctrl.navigate(PatientViewScreens.DOC_LOADER.name)
+                                    doctors_composable =  DoctorsComposable(active_speciality,main_nav_ctrl,mutable_doctors_map,is_global_loading)
+                                    Log.i("MATCH_TYPE","USING ALL ONLINE MEDICS")
+                                    GlobalScope.launch {
+
+                                        //wslogin(active_speciality,global_session_id, main_hospital_man, this_ws_listener)
+
+                                        main_hospital_man.findAllOnlineDocs(active_speciality)
+                                    }
                                 }
 
 
@@ -1971,6 +2109,7 @@ class PatientView : ComponentActivity() {
     fun DoctorBox(chat_model: ChatModel) //doctor chat box template
     {
         var chat_msg: String = chat_model.message
+
         var chat_type = chat_model.msg_type
         Box(modifier= Modifier
             //.padding(2.dp)
@@ -2411,7 +2550,7 @@ class PatientView : ComponentActivity() {
                 }
 
                 showText(text = "Socket Closed")
-                Row(modifier = Modifier.background(Color.Transparent))
+                Column(modifier = Modifier.background(Color.Transparent))
                 {
                     Button(
                         colors = ButtonDefaults.buttonColors(
